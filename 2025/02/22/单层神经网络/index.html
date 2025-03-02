@@ -19,16 +19,17 @@
   <meta name="author" content="John Doe">
   <meta name="keywords" content="">
   
-    <meta name="description" content="单层神经网络 单层神经网络 以一个二分类模型为例子，模型描述如下：  给出待判断的物体的n个特征x1,x2,...xnx_1,x_2, ... x_nx1​,x2​,...xn​ 给出待判断物体的类别：0或1  模型建立：令n个w, 记为：w1,w2,...,wnw_1,w_2,...,w_nw1​,w2​,...,wn​，和常数b，令其满足如下公式： P&#x3D;σ(w1∗x1+w2∗x2+...+wn">
+    <meta name="description" content="单层神经网络 以一个二分类模型为例子，模型描述如下：  给出待判断的物体的n个特征x1,x2,...xnx_1,x_2, ... x_nx1​,x2​,...xn​ 给出待判断物体的类别：0或1  模型建立：令n个w, 记为：w1,w2,...,wnw_1,w_2,...,w_nw1​,w2​,...,wn​，和常数b，令其满足如下公式： P&#x3D;σ(w1∗x1+w2∗x2+...+wn∗xn+b)P">
 <meta property="og:type" content="article">
 <meta property="og:title" content="吴恩达学习笔记 —— 单层神经网络">
 <meta property="og:url" content="http://example.com/2025/02/22/%E5%8D%95%E5%B1%82%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="单层神经网络 单层神经网络 以一个二分类模型为例子，模型描述如下：  给出待判断的物体的n个特征x1,x2,...xnx_1,x_2, ... x_nx1​,x2​,...xn​ 给出待判断物体的类别：0或1  模型建立：令n个w, 记为：w1,w2,...,wnw_1,w_2,...,w_nw1​,w2​,...,wn​，和常数b，令其满足如下公式： P&#x3D;σ(w1∗x1+w2∗x2+...+wn">
+<meta property="og:description" content="单层神经网络 以一个二分类模型为例子，模型描述如下：  给出待判断的物体的n个特征x1,x2,...xnx_1,x_2, ... x_nx1​,x2​,...xn​ 给出待判断物体的类别：0或1  模型建立：令n个w, 记为：w1,w2,...,wnw_1,w_2,...,w_nw1​,w2​,...,wn​，和常数b，令其满足如下公式： P&#x3D;σ(w1∗x1+w2∗x2+...+wn∗xn+b)P">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2025-02-22T14:09:24.000Z">
-<meta property="article:modified_time" content="2025-02-23T11:20:45.002Z">
+<meta property="article:modified_time" content="2025-03-02T15:19:28.882Z">
 <meta property="article:author" content="John Doe">
+<meta property="article:tag" content="人工智能基础">
 <meta name="twitter:card" content="summary_large_image">
   
   
@@ -300,7 +301,6 @@
               <div class="markdown-body">
                 
                 <h1>单层神经网络</h1>
-<h1>单层神经网络</h1>
 <p>以一个二分类模型为例子，模型描述如下：</p>
 <ul>
 <li>给出待判断的物体的n个特征<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mn>1</mn></msub><mo separator="true">,</mo><msub><mi>x</mi><mn>2</mn></msub><mo separator="true">,</mo><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><mi mathvariant="normal">.</mi><msub><mi>x</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">x_1,x_2, ... x_n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">...</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></li>
@@ -421,6 +421,13 @@
     </div>
   
   
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD%E5%9F%BA%E7%A1%80/" class="print-no-link">#人工智能基础</a>
+      
+    </div>
+  
 </div>
 
 
@@ -473,6 +480,12 @@
                 <div class="post-prevnext my-3">
                   <article class="post-prev col-6">
                     
+                    
+                      <a href="/2025/03/02/%E4%B8%80%E6%96%87%E7%9C%9F%E6%AD%A3%E7%9C%8B%E6%87%82std-move%E5%92%8Cstd-forward/" title="一文真正看懂std::move和std::forward">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">一文真正看懂std::move和std::forward</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
                     
                   </article>
                   <article class="post-next col-6">
