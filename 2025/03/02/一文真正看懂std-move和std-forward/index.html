@@ -21,20 +21,20 @@
   
     <meta name="description" content="左值、右值、左值引用和右值引用 在最开始，我们介绍4个概念，这四个概念会用于我们后续理解move和forward的原理。 定义 1. 左值（Lvalue） 左值是指一个表达式结束后仍然存在的对象或变量。左值可以出现在赋值运算符的左边或右边。 特点：  有名字的变量或对象。 可以取地址。  123int a &#x3D; 10;  &#x2F;&#x2F; a 是左值int b &#x3D; a;   &#x2F;&#x2F; a 是左值，可以出现在赋值运算">
 <meta property="og:type" content="article">
-<meta property="og:title" content="一文真正看懂std::move和std::forward">
+<meta property="og:title" content="C++模板系列 —— 一文真正看懂std::move和std::forward">
 <meta property="og:url" content="http://example.com/2025/03/02/%E4%B8%80%E6%96%87%E7%9C%9F%E6%AD%A3%E7%9C%8B%E6%87%82std-move%E5%92%8Cstd-forward/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="左值、右值、左值引用和右值引用 在最开始，我们介绍4个概念，这四个概念会用于我们后续理解move和forward的原理。 定义 1. 左值（Lvalue） 左值是指一个表达式结束后仍然存在的对象或变量。左值可以出现在赋值运算符的左边或右边。 特点：  有名字的变量或对象。 可以取地址。  123int a &#x3D; 10;  &#x2F;&#x2F; a 是左值int b &#x3D; a;   &#x2F;&#x2F; a 是左值，可以出现在赋值运算">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2025-03-02T15:14:57.000Z">
-<meta property="article:modified_time" content="2025-03-03T13:38:15.504Z">
+<meta property="article:modified_time" content="2025-03-23T15:42:30.916Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="c++模板">
 <meta name="twitter:card" content="summary_large_image">
   
   
   
-  <title>一文真正看懂std::move和std::forward - Hexo</title>
+  <title>C++模板系列 —— 一文真正看懂std::move和std::forward - Hexo</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -215,7 +215,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="一文真正看懂std::move和std::forward"></span>
+            <span id="subtitle" data-typed-text="C++模板系列 —— 一文真正看懂std::move和std::forward"></span>
           
         </div>
 
@@ -295,7 +295,7 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">一文真正看懂std::move和std::forward</h1>
+            <h1 id="seo-header">C++模板系列 —— 一文真正看懂std::move和std::forward</h1>
             
             
               <div class="markdown-body">
@@ -507,7 +507,7 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>一文真正看懂std::move和std::forward</div>
+      <div>C++模板系列 —— 一文真正看懂std::move和std::forward</div>
       <div>http://example.com/2025/03/02/一文真正看懂std-move和std-forward/</div>
     </div>
     <div class="license-meta">
@@ -552,9 +552,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2025/03/04/%E7%90%86%E8%A7%A3C-%E4%B8%AD%E7%9A%84SFINAE/" title="理解C++中的SFINAE">
+                      <a href="/2025/03/04/%E7%90%86%E8%A7%A3C-%E4%B8%AD%E7%9A%84SFINAE/" title="C++模板系列 —— 理解C++中的SFINAE">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">理解C++中的SFINAE</span>
+                        <span class="hidden-mobile">C++模板系列 —— 理解C++中的SFINAE</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
