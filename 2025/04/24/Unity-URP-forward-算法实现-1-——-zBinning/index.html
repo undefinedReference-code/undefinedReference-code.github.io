@@ -1,0 +1,803 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="[Unity] URP forward+算法实现 (1) —— zBinning 导言 本系列旨在通过逐行代码分析，给大家分析我对于Unity的URP中的forward+算法的一点浅薄的理解。如果不对之处，欢迎大家交流。在开头总体上说一下我对这个算法的理解。 首先forward+是一个剔除算法，它主要是将我们的渲染世界分为一个个Tile（块），然后判断每一个块会不会受某个光源的影响，如果不受影响，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[Unity] URP forward+算法实现 (1) —— zBinning">
+<meta property="og:url" content="http://example.com/2025/04/24/Unity-URP-forward-%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0-1-%E2%80%94%E2%80%94-zBinning/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="[Unity] URP forward+算法实现 (1) —— zBinning 导言 本系列旨在通过逐行代码分析，给大家分析我对于Unity的URP中的forward+算法的一点浅薄的理解。如果不对之处，欢迎大家交流。在开头总体上说一下我对这个算法的理解。 首先forward+是一个剔除算法，它主要是将我们的渲染世界分为一个个Tile（块），然后判断每一个块会不会受某个光源的影响，如果不受影响，">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2025/03/23/C-%E6%A8%A1%E6%9D%BF%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94-std-declval/%E7%8E%B0-1-%E2%80%94%E2%80%94-zBinning/image-20250421231511-pes39s4.png">
+<meta property="og:image" content="http://example.com/2025/03/23/C-%E6%A8%A1%E6%9D%BF%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94-std-declval/%E7%8E%B0-1-%E2%80%94%E2%80%94-zBinning/image-20250424214925-asvanes.png">
+<meta property="og:image" content="http://example.com/2025/03/23/C-%E6%A8%A1%E6%9D%BF%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94-std-declval/%E7%8E%B0-1-%E2%80%94%E2%80%94-zBinning/image-20250421231511-pes39s4.png">
+<meta property="og:image" content="http://example.com/2025/03/23/C-%E6%A8%A1%E6%9D%BF%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94-std-declval/%E7%8E%B0-1-%E2%80%94%E2%80%94-zBinning/image-20250424183941-77kxm9c.png">
+<meta property="og:image" content="http://example.com/2025/03/23/C-%E6%A8%A1%E6%9D%BF%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94-std-declval/%E7%8E%B0-1-%E2%80%94%E2%80%94-zBinning/image-20250401105410-8r7ai4m.png">
+<meta property="og:image" content="http://example.com/2025/03/23/C-%E6%A8%A1%E6%9D%BF%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94-std-declval/%E7%8E%B0-1-%E2%80%94%E2%80%94-zBinning/image-20250401110930-s3d43x8.png">
+<meta property="og:image" content="http://example.com/2025/03/23/C-%E6%A8%A1%E6%9D%BF%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94-std-declval/%E7%8E%B0-1-%E2%80%94%E2%80%94-zBinning/image-20250401113338-51vw6hv.png">
+<meta property="og:image" content="http://example.com/2025/03/23/C-%E6%A8%A1%E6%9D%BF%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94-std-declval/%E7%8E%B0-1-%E2%80%94%E2%80%94-zBinning/image-20250401113552-7vsax02.png">
+<meta property="og:image" content="http://example.com/2025/03/23/C-%E6%A8%A1%E6%9D%BF%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94-std-declval/%E7%8E%B0-1-%E2%80%94%E2%80%94-zBinning/image-20250401112642-6ex7gm8.png">
+<meta property="article:published_time" content="2025-04-24T13:51:13.000Z">
+<meta property="article:modified_time" content="2025-04-24T13:56:48.956Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="图形学">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/2025/03/23/C-%E6%A8%A1%E6%9D%BF%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94-std-declval/%E7%8E%B0-1-%E2%80%94%E2%80%94-zBinning/image-20250421231511-pes39s4.png">
+  
+  
+  
+  <title>[Unity] URP forward+算法实现 (1) —— zBinning - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/KaTeX/0.16.2/katex.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":"Fo0QIqpU699rbG2Rl9lW3Vau-MdYXbMMI","app_key":"z8m7WlbfobcDyEJnhla5kN5Z","server_url":"https://fo0qiqpu.api.lncldglobal.com","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="[Unity] URP forward+算法实现 (1) —— zBinning"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-04-24 21:51" pubdate>
+          2025年4月24日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          28 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="leancloud-page-views"></span> 次
+        </span>
+        
+      
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">[Unity] URP forward+算法实现 (1) —— zBinning</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1>[Unity] URP forward+算法实现 (1) —— zBinning</h1>
+<h1>导言</h1>
+<p>本系列旨在通过逐行代码分析，给大家分析我对于Unity的URP中的forward+算法的一点浅薄的理解。如果不对之处，欢迎大家交流。在开头总体上说一下我对这个算法的理解。</p>
+<p>首先forward+是一个剔除算法，它主要是将我们的渲染世界分为一个个Tile（块），然后判断每一个块会不会受某个光源的影响，如果不受影响，则可以在光照计算时忽略这个光，从而加快计算。</p>
+<p>我阅读的是URP 14的代码，实际上Unity从z方向和xy方向两个维度对世界进行分块，z方向叫做zbinning（每个块叫zbin），而xy方向叫做Tiling（每个块叫做tile）。view空间中视锥体内任意一个可见的点都属于一个zbin（例如zbin1）和一个tile（tile3）。如果一个光A可能会影响zbin1，也可能会影响tile3，那么Unity认为这个光可能会影响该点，在光照计算时需要考虑光A。</p>
+<p>为什么我用了这么多个可能，因为我认为forward+算法给出的是一个必要条件而不是一个充要条件，也就是说，算法判定为光A会影响点(x,y,z)则不一定光A会影响点(x,y,z)，但是如果算法判定为光A不会影响点(x,y,z)则光A一定不会影响点(x,y,z)。</p>
+<h1>Zbinning</h1>
+<p>下图是zbinning的基本流程：</p>
+<p><img src="/2025/03/23/C-%E6%A8%A1%E6%9D%BF%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94-std-declval/%E7%8E%B0-1-%E2%80%94%E2%80%94-zBinning/image-20250421231511-pes39s4.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>在view空间中，我们有一个近平面near和一个远平面far，我们将near和far分为一个个bin，如下图的方块所示，我们计算一个光在view空间中的影响范围的AABB bounding box，我们不需要算出整个bounding box，我们只需要算出它的Z坐标的值，然后将范围内的zbin标记为可能被影响到，如上图绿色方块所示。</p>
+<h1>数据准备——ForwardsLights.cs的<code>PreSetup</code>​</h1>
+<p>首先确定研究对象——光的数量。这里，我们需要研究的，可能会影响到zbin的对象包括点光源、聚光灯和反射探针，平行光会影响所有zbin，不需要考虑。这里对应代码中的：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><span class="hljs-keyword">var</span> itemsPerTile = visibleLights.Length + reflectionProbeCount;<br></code></pre></td></tr></table></figure>
+<p>这些影响zbin的对象被称为Item。这里混用了tile和zbin是因为其实都是这样算的。。。这个值对于zbin和tile都是一样的。所以我也混用了。</p>
+<p>我们用一个32为的bitset（称为word），每个bit记录一个item是不是影响某个Tile/Zbin，所以一个tile需要的word数量为：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs csharp">m_WordsPerTile = (itemsPerTile + <span class="hljs-number">31</span>) / <span class="hljs-number">32</span>;<br></code></pre></td></tr></table></figure>
+<p>接下来，我们要对z方向的空间进行分块。对应代码中的这一段：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><span class="hljs-keyword">if</span> (!camera.orthographic)<br>&#123;<br>    <span class="hljs-comment">// Use to calculate binIndex = log2(z) * zBinScale + zBinOffset</span><br>    m_ZBinScale = (UniversalRenderPipeline.maxZBinWords / viewCount) / ((math.log2(camera.farClipPlane) - math.log2(camera.nearClipPlane)) * (<span class="hljs-number">2</span> + m_WordsPerTile));<br>    m_ZBinOffset = -math.log2(camera.nearClipPlane) * m_ZBinScale;<br>    m_BinCount = (<span class="hljs-built_in">int</span>)(math.log2(camera.farClipPlane) * m_ZBinScale + m_ZBinOffset);<br>&#125;<br><span class="hljs-keyword">else</span><br>&#123;<br>    <span class="hljs-comment">// Use to calculate binIndex = z * zBinScale + zBinOffset</span><br>    m_ZBinScale = (UniversalRenderPipeline.maxZBinWords / viewCount) / ((camera.farClipPlane - camera.nearClipPlane) * (<span class="hljs-number">2</span> + m_WordsPerTile));<br>    m_ZBinOffset = -camera.nearClipPlane * m_ZBinScale;<br>    m_BinCount = (<span class="hljs-built_in">int</span>)(camera.farClipPlane * m_ZBinScale + m_ZBinOffset);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>首先我们看else分支，代表平行投影相机的分块，这个好理解一点。</p>
+<p>首先，我们非vr条件下，viewCount必定为1。<code>UniversalRenderPipeline.maxZBinWords</code>​代表我们分了n个zbin后，n个zbin所占的words的大小是多少。那么每个zbin所占的words大小是多少，是<code>2 + m_WordsPerTile</code>​，为什么多了个2，因为每个zbin还有两个words的头，这个头存着影响这个zbin的所有灯光\反射探针的最大最小index。例如现在有0-31号的灯，只从z深度的角度看，其中只有1,4,6,7,8可能影响了zbin1，那么记录zbin1的头中的minIndex = 1, maxIndex = 8，其中两个index各占16字节，共用一个32位的头。为什么又两个头呢？因为点光源和聚光灯用一个，反射探针用另一个。每个zbin的数据结构示意图如下：</p>
+<p><img src="/2025/03/23/C-%E6%A8%A1%E6%9D%BF%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94-std-declval/%E7%8E%B0-1-%E2%80%94%E2%80%94-zBinning/image-20250424214925-asvanes.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>所以我们的zbin数量最多有<code>(UniversalRenderPipeline.maxZBinWords / viewCount) /  (2 + m_WordsPerTile))</code>​，其实你把上面的代码的 m_ZBinScale 和 m_ZBinOffset 带入 m_BinCount 就算这个结果（这里不理解为什么不先算z_binCount）。之后我们就能理解了，我们要用这么多个zbin去平均地填满 camera.farClipPlane 到 camera.nearClipPlane 的空间，并且我们需要使得 camera.nearClipPlane 对应0，所以得到了 zBinScale 和 zBinOffset。</p>
+<p>给定一个view空间中的深度z，我们也可以用 z * zBinScale + zBinOffset 求出其对应的 zbin 的 index</p>
+<p>接下来，我们要理解透视投影下的深度分割方法。透视投影唯一的区别就是先把深度空间z取log2，也就是原来分割的是camera.nearClipPlane 到 camera.farClipPlane 的空间，现在分割的是log2(camera.nearClipPlane) 到 log2(camera.farClipPlane)的空间。</p>
+<p>下面我们可以看到一个分割x,y方向的代码，在当前的zbinning暂时不会用到，但是后面分割xy方向的tiling任务会用到：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs csharp">m_ActualTileWidth = <span class="hljs-number">8</span> &gt;&gt; <span class="hljs-number">1</span>;<br><span class="hljs-keyword">do</span><br>&#123;<br>    m_ActualTileWidth &lt;&lt;= <span class="hljs-number">1</span>;<br>    m_TileResolution = (screenResolution + m_ActualTileWidth - <span class="hljs-number">1</span>) / m_ActualTileWidth;<br>&#125;<br><span class="hljs-keyword">while</span> ((m_TileResolution.x * m_TileResolution.y * m_WordsPerTile * viewCount) &gt; UniversalRenderPipeline.maxTileWords);<br></code></pre></td></tr></table></figure>
+<p>这个很好理解，就是我们的m_ActualTileWidth是2的n次方，m_TileResolution 由一个向上取整的整数除法得到，最后约束条件是tiling最大的占用的words的数量。</p>
+<h1>zbinning 算法 —— LightMinMaxZJob</h1>
+<p>计算好参数之后，我们正式开始zbining算法。这个算法分为两步：1. 首先我们在view空间下计算一个灯光所能影响的最大和最小z。2. 我们把这两个z映射为对应的zbin的idx。例如灯A所能影响的最大的zbin的idx为10，最小为1，那么标记1-10这10个zbin都可能被灯光A所影响。</p>
+<p>下面来看第一步LightMinMaxZJob</p>
+<h2 id="任务设置">任务设置</h2>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><span class="hljs-keyword">var</span> lightMinMaxZJob = <span class="hljs-keyword">new</span> LightMinMaxZJob<br>&#123;<br>    worldToViews = worldToViews,<br>    lights = visibleLights,<br>    minMaxZs = minMaxZs.GetSubArray(<span class="hljs-number">0</span>, m_LightCount * viewCount)<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>其中worldToViews和visibleLights是输入，minMaxZs是输出。worldToViews对应相机的view矩阵，只和相机有关，在非VR的条件下只有一个相机。</p>
+<h2 id="任务流程">任务流程</h2>
+<p>接下来，我们看如何计算一个灯的所能影响范围的最大z和最小z。</p>
+<h3 id="点光源">点光源</h3>
+<p>对于点光源，计算的思路如下：</p>
+<p>对于一个点光源，从任意方向看过去，作用范围都是一个圆形，那么事情就很好办了。如上面的图所示：</p>
+<p><img src="/2025/03/23/C-%E6%A8%A1%E6%9D%BF%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94-std-declval/%E7%8E%B0-1-%E2%80%94%E2%80%94-zBinning/image-20250421231511-pes39s4.png" srcset="/img/loading.gif" lazyload alt="">​</p>
+<p>我们先求出spot在view空间中的圆心/球心——也就是光源的位置<code>originVS</code>​，<code>originVS.z + light.range</code>​和<code>originVS.z - light.range</code>​就是我们需要的。代码如下（省略了聚光灯的分支）：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Execute</span>(<span class="hljs-params"><span class="hljs-built_in">int</span> index</span>)</span><br>&#123;<br>    <span class="hljs-keyword">var</span> lightIndex = index % lights.Length;<br>    <span class="hljs-keyword">var</span> light = lights[lightIndex];<br>    <span class="hljs-keyword">var</span> lightToWorld = (float4x4)light.localToWorldMatrix;<br>    <span class="hljs-comment">// 光在世界空间中的坐标</span><br>    <span class="hljs-keyword">var</span> originWS = lightToWorld.c3.xyz;<br>    <span class="hljs-keyword">var</span> viewIndex = index / lights.Length;<br>    <span class="hljs-keyword">var</span> worldToView = worldToViews[viewIndex];<br>    <span class="hljs-comment">// 光在view空间中的坐标</span><br>    <span class="hljs-keyword">var</span> originVS = math.mul(worldToView, math.float4(originWS, <span class="hljs-number">1</span>)).xyz;<br>    originVS.z *= <span class="hljs-number">-1</span>;<br>    <span class="hljs-comment">// 用球心+半径的方式球范围</span><br>    <span class="hljs-keyword">var</span> minMax = math.float2(originVS.z - light.range, originVS.z + light.range);<br><br>    minMax.x = math.max(minMax.x, <span class="hljs-number">0</span>);<br>    minMax.y = math.max(minMax.y, <span class="hljs-number">0</span>);<br>    minMaxZs[index] = minMax;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h3 id="聚光灯">聚光灯</h3>
+<p>聚光灯的计算方式不同于点光源，首先，为什么聚光灯不能当成点光源去计算，用光的位置+半径？因为聚光灯的作用范围只是同样range的灯光的一部分：</p>
+<p><img src="/2025/03/23/C-%E6%A8%A1%E6%9D%BF%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94-std-declval/%E7%8E%B0-1-%E2%80%94%E2%80%94-zBinning/image-20250424183941-77kxm9c.png" srcset="/img/loading.gif" lazyload alt="">​</p>
+<p>可以看到，聚光灯的影响范围只有蓝色阴影的部分。所以，可能为最大最小z的地方有几个：1. 点A；2. 点B；3. 点O；4. AB之间，作为蓝色阴影边界的圆弧。具体取那个点，则取决于我们的z轴方向。例如下图的z点的方向，光源影响的最大z正好就是<code>originVS.z + light.range</code>​，而最小z则是原点O。</p>
+<p><img src="/2025/03/23/C-%E6%A8%A1%E6%9D%BF%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94-std-declval/%E7%8E%B0-1-%E2%80%94%E2%80%94-zBinning/image-20250401105410-8r7ai4m.png" srcset="/img/loading.gif" lazyload alt="">​</p>
+<p>基于上面的理解，我们来看具体算法：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><code class="hljs csharp">    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Execute</span>(<span class="hljs-params"><span class="hljs-built_in">int</span> index</span>)</span><br>    &#123;<br>        <span class="hljs-keyword">var</span> lightIndex = index % lights.Length;<br>        <span class="hljs-keyword">var</span> light = lights[lightIndex];<br>        <span class="hljs-keyword">var</span> lightToWorld = (float4x4)light.localToWorldMatrix;<br>        <span class="hljs-keyword">var</span> originWS = lightToWorld.c3.xyz;<br>        <span class="hljs-keyword">var</span> viewIndex = index / lights.Length;<br>        <span class="hljs-keyword">var</span> worldToView = worldToViews[viewIndex];<br>        <span class="hljs-keyword">var</span> originVS = math.mul(worldToView, math.float4(originWS, <span class="hljs-number">1</span>)).xyz;<br>        originVS.z *= <span class="hljs-number">-1</span>;<br><br>        <span class="hljs-keyword">var</span> minMax = math.float2(originVS.z - light.range, originVS.z + light.range);<br><br>        <span class="hljs-keyword">if</span> (light.lightType == LightType.Spot)<br>        &#123;<br>            <span class="hljs-comment">// Based on https://iquilezles.org/www/articles/diskbbox/diskbbox.htm</span><br>            <span class="hljs-keyword">var</span> angleA = math.radians(light.spotAngle) * <span class="hljs-number">0.5f</span>;<br>            <span class="hljs-built_in">float</span> cosAngleA = math.cos(angleA);<br>            <span class="hljs-built_in">float</span> coneHeight = light.range * cosAngleA;<br>            float3 spotDirectionWS = lightToWorld.c2.xyz;<br>            <span class="hljs-keyword">var</span> endPointWS = originWS + spotDirectionWS * coneHeight;<br>            <span class="hljs-keyword">var</span> endPointVS = math.mul(worldToView, math.float4(endPointWS, <span class="hljs-number">1</span>)).xyz;<br>            endPointVS.z *= <span class="hljs-number">-1</span>;<br>            <span class="hljs-keyword">var</span> angleB = math.PI * <span class="hljs-number">0.5f</span> - angleA;<br>            <span class="hljs-keyword">var</span> coneRadius = light.range * cosAngleA * math.sin(angleA) / math.sin(angleB);<br>            <span class="hljs-keyword">var</span> a = endPointVS - originVS;<br>            <span class="hljs-keyword">var</span> e = math.sqrt(<span class="hljs-number">1.0f</span> - a.z * a.z / math.dot(a, a));<br><br>            <span class="hljs-comment">// `-a.z` and `a.z` is `dot(a, &#123;0, 0, -1&#125;).z` and `dot(a, &#123;0, 0, 1&#125;).z` optimized</span><br>            <span class="hljs-comment">// `cosAngleA` is multiplied by `coneHeight` to avoid normalizing `a`, which we know has length `coneHeight`</span><br>            <span class="hljs-keyword">if</span> (-a.z &lt; coneHeight * cosAngleA) minMax.x = math.min(originVS.z, endPointVS.z - e * coneRadius);<br>            <span class="hljs-keyword">if</span> (a.z &lt; coneHeight * cosAngleA) minMax.y = math.max(originVS.z, endPointVS.z + e * coneRadius);<br>        &#125;<br><br>        minMax.x = math.max(minMax.x, <span class="hljs-number">0</span>);<br>        minMax.y = math.max(minMax.y, <span class="hljs-number">0</span>);<br>        minMaxZs[index] = minMax;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>首先Unity需要计算一些值：</p>
+<p><img src="/2025/03/23/C-%E6%A8%A1%E6%9D%BF%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94-std-declval/%E7%8E%B0-1-%E2%80%94%E2%80%94-zBinning/image-20250401110930-s3d43x8.png" srcset="/img/loading.gif" lazyload alt="">​</p>
+<p>注意代码中有两个if ：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><span class="hljs-keyword">if</span> (-a.z &lt; coneHeight * cosAngleA) <span class="hljs-comment">// 不成立时，聚光灯的最小z就是当成点光源的最小z</span><br><span class="hljs-keyword">if</span> (a.z &lt; coneHeight * cosAngleA) <span class="hljs-comment">//  不成立时，聚光灯的最大z就是当成点光源的最大z</span><br></code></pre></td></tr></table></figure>
+<p>这两个 if 判断你能不能用点光源的最小z、最大z作为同样position、range的聚光灯的最小、最大z。怎么理解这两个if？</p>
+<p>我们回头想想，我们能不能把点光源的最大z作为聚光灯的最大z的临界点是什么？—— z轴刚好和聚光灯圆锥的边缘平行。</p>
+<p><img src="/2025/03/23/C-%E6%A8%A1%E6%9D%BF%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94-std-declval/%E7%8E%B0-1-%E2%80%94%E2%80%94-zBinning/image-20250401113338-51vw6hv.png" srcset="/img/loading.gif" lazyload alt="">​</p>
+<p>此时AB=CO。当z轴稍微旋转到下面位置时，我们不能之间使用点光源的max z作为聚光灯的max z</p>
+<p><img src="/2025/03/23/C-%E6%A8%A1%E6%9D%BF%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94-std-declval/%E7%8E%B0-1-%E2%80%94%E2%80%94-zBinning/image-20250401113552-7vsax02.png" srcset="/img/loading.gif" lazyload alt="">​</p>
+<p>对于黄色的图示，AB&lt;CO，因为CO的长度是不变的，而AB由于z轴的倾斜而变短了</p>
+<p>当极限条件下，我们把endPointVS–originVS这条线段投影到z轴，长度刚好等于 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mi>o</mi><mi>n</mi><mi>e</mi><mi>H</mi><mi>e</mi><mi>i</mi><mi>g</mi><mi>h</mi><mi>t</mi><mo>∗</mo><mi>c</mi><mi>o</mi><mi>s</mi><mo stretchy="false">(</mo><mi>a</mi><mi>n</mi><mi>g</mi><mi>l</mi><mi>e</mi><mi>A</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">coneHeight * cos(angleA)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">co</span><span class="mord mathnormal">n</span><span class="mord mathnormal">eHe</span><span class="mord mathnormal">i</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord mathnormal">h</span><span class="mord mathnormal">t</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">cos</span><span class="mopen">(</span><span class="mord mathnormal">an</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">e</span><span class="mord mathnormal">A</span><span class="mclose">)</span></span></span></span>，当z在圆锥中时，投影长度会变长，大于<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mi>o</mi><mi>n</mi><mi>e</mi><mi>H</mi><mi>e</mi><mi>i</mi><mi>g</mi><mi>h</mi><mi>t</mi><mo>∗</mo><mi>c</mi><mi>o</mi><mi>s</mi><mo stretchy="false">(</mo><mi>a</mi><mi>n</mi><mi>g</mi><mi>l</mi><mi>e</mi><mi>A</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">coneHeight * cos(angleA)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">co</span><span class="mord mathnormal">n</span><span class="mord mathnormal">eHe</span><span class="mord mathnormal">i</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord mathnormal">h</span><span class="mord mathnormal">t</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">cos</span><span class="mopen">(</span><span class="mord mathnormal">an</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">e</span><span class="mord mathnormal">A</span><span class="mclose">)</span></span></span></span>，此时不用修正。反之，我们需要进行修正，重新计算min或者max z。</p>
+<p>具体的修正算法如下：</p>
+<p><img src="/2025/03/23/C-%E6%A8%A1%E6%9D%BF%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94-std-declval/%E7%8E%B0-1-%E2%80%94%E2%80%94-zBinning/image-20250401112642-6ex7gm8.png" srcset="/img/loading.gif" lazyload alt="">​</p>
+<p>上图画出了如何修正来求max z，黄色的边是z轴的方向。可能的候选点有P或者原点，P点的z坐标怎么求呢？用下面的代码：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><span class="hljs-keyword">if</span> (-a.z &lt; coneHeight * cosAngleA) minMax.x = math.min(originVS.z, endPointVS.z - e * coneRadius);<br><span class="hljs-keyword">if</span> (a.z &lt; coneHeight * cosAngleA) minMax.y = math.max(originVS.z, endPointVS.z + e * coneRadius);<br></code></pre></td></tr></table></figure>
+<p>这里的a是向量originVS -&gt; endpointVS, e是<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mi>i</mi><mi>n</mi><mi>α</mi></mrow><annotation encoding="application/x-tex">sin\alpha</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">s</span><span class="mord mathnormal">in</span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span></span></span></span>，coneRadius是endpointVS到P的距离，e * coneRadius 正好是endpointVS和P之间z分量的差距</p>
+<p>求最大z和最小z差了一个±号。</p>
+<h3 id="反射探针">反射探针</h3>
+<p>反射探针的作用范围在世界空间中是个aabb，在view空间中是个矩形但是不一定会和坐标轴对齐。但是无论如何，矩形的最大、最小z一定在矩形的端点处取得，所以计算反射探针只需要把八个顶点分别变换到view空间、计算每一个点的z值，并用这八个点更新最终的最大z和最小z即可。</p>
+<p>对应的代码在<code>ReflectionProbeMinMaxZJob</code>​中</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Execute</span>(<span class="hljs-params"><span class="hljs-built_in">int</span> index</span>)</span><br>&#123;<br>    <span class="hljs-keyword">var</span> minMax = math.float2(<span class="hljs-built_in">float</span>.MaxValue, <span class="hljs-built_in">float</span>.MinValue);<br>    <span class="hljs-keyword">var</span> reflectionProbeIndex = index % reflectionProbes.Length;<br>    <span class="hljs-keyword">var</span> reflectionProbe = reflectionProbes[reflectionProbeIndex];<br>    <span class="hljs-keyword">var</span> viewIndex = index / reflectionProbes.Length;<br>    <span class="hljs-keyword">var</span> worldToView = worldToViews[viewIndex];<br>    <span class="hljs-comment">// 矩形中心</span><br>    <span class="hljs-keyword">var</span> centerWS = (float3)reflectionProbe.bounds.center;<br>    <span class="hljs-comment">// 矩形的边长的一半</span><br>    <span class="hljs-keyword">var</span> extentsWS = (float3)reflectionProbe.bounds.extents;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">8</span>; i++)<br>    &#123;<br>        <span class="hljs-comment">// Convert index to x, y, and z in [-1, 1]</span><br>        <span class="hljs-keyword">var</span> x = ((i &lt;&lt; <span class="hljs-number">1</span>) &amp; <span class="hljs-number">2</span>) - <span class="hljs-number">1</span>;<br>        <span class="hljs-keyword">var</span> y = (i &amp; <span class="hljs-number">2</span>) - <span class="hljs-number">1</span>;<br>        <span class="hljs-keyword">var</span> z = ((i &gt;&gt; <span class="hljs-number">1</span>) &amp; <span class="hljs-number">2</span>) - <span class="hljs-number">1</span>;<br>        <span class="hljs-comment">// 求出矩形的8个顶点</span><br>        <span class="hljs-keyword">var</span> cornerVS = math.mul(worldToView, math.float4(centerWS + extentsWS * math.float3(x, y, z), <span class="hljs-number">1</span>));<br>        cornerVS.z *= <span class="hljs-number">-1</span>;<br>        minMax.x = math.min(minMax.x, cornerVS.z);<br>        minMax.y = math.max(minMax.y, cornerVS.z);<br>    &#125;<br><br>    minMaxZs[index] = minMax;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h2 id="总结">总结</h2>
+<p>虽然过程中，非平行光和反射探针是两个任务，但是他们的结果都存在minMaxZs中。每一个minMax的x分量存z的最小值，y分量存最大值。</p>
+<p>从整个minMaxZs数组来看，每个元素的排布如下：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs csharp">[<span class="hljs-meta">light 0 view 0, light 1 view 0, light 2 view 0, ..., light 0 view 1, light 1 view 1, light 2 view 1,..., reflection probe 0 view 0, reflection probe 1 view 0, ..., reflection probe 0 view 1, reflection probe 1 view 1,....</span>]<br></code></pre></td></tr></table></figure>
+<h1>zbinning 算法 —— ZBinningJob</h1>
+<p>zbinning Job用上一步minMaxZs的结果，用job system来更新每个zbin是否被某个光/反射探针影响。</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><span class="hljs-keyword">var</span> zBinningBatchCount = (m_BinCount + ZBinningJob.batchSize - <span class="hljs-number">1</span>) / ZBinningJob.batchSize;<br><span class="hljs-keyword">var</span> zBinningJob = <span class="hljs-keyword">new</span> ZBinningJob<br>&#123;<br>    bins = m_ZBins,<br>    minMaxZs = minMaxZs,<br>    zBinScale = m_ZBinScale,<br>    zBinOffset = m_ZBinOffset,<br>    binCount = m_BinCount,<br>    wordsPerTile = m_WordsPerTile,<br>    lightCount = m_LightCount,<br>    reflectionProbeCount = reflectionProbeCount,<br>    batchCount = zBinningBatchCount,<br>    viewCount = viewCount,<br>    isOrthographic = camera.orthographic<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>我们以zbin为单位来划分我们的Job，每个Job更新ZBinningJob.batchSize这么多个的zbin</p>
+<p>具体的更新算法如下：</p>
+<p>首先，我们的任务需要更新index为binStart到binEnd这么多个zbin，每个zbin我们需要判断所有的灯/反射探针是否影响到。同时更新我们的header。</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Execute</span>(<span class="hljs-params"><span class="hljs-built_in">int</span> jobIndex</span>)</span><br>&#123;<br>    <span class="hljs-keyword">var</span> batchIndex = jobIndex % batchCount;<br>    <span class="hljs-keyword">var</span> viewIndex = jobIndex / batchCount;<br><br>    <span class="hljs-keyword">var</span> binStart = batchSize * batchIndex;<br>    <span class="hljs-keyword">var</span> binEnd = math.min(binStart + batchSize, binCount) - <span class="hljs-number">1</span>;<br><br>    <span class="hljs-keyword">var</span> binOffset = viewIndex * binCount;<br><br>    <span class="hljs-keyword">var</span> emptyHeader = EncodeHeader(<span class="hljs-built_in">ushort</span>.MaxValue, <span class="hljs-built_in">ushort</span>.MinValue);<br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> binIndex = binStart; binIndex &lt;= binEnd; binIndex++)<br>    &#123;<br>        bins[(binOffset + binIndex) * (headerLength + wordsPerTile) + <span class="hljs-number">0</span>] = emptyHeader;<br>        bins[(binOffset + binIndex) * (headerLength + wordsPerTile) + <span class="hljs-number">1</span>] = emptyHeader;<br>    &#125;<br><br>    <span class="hljs-comment">// Regarding itemOffset: minMaxZs contains [lights view 0, lights view 1, probes view 0, probes view 1] when</span><br>    <span class="hljs-comment">// using XR single pass instanced, and otherwise [lights, probes]. So we figure out what the offset is based</span><br>    <span class="hljs-comment">// on the view count and index.</span><br><br>    <span class="hljs-comment">// Fill ZBins for lights.</span><br>    FillZBins(binStart, binEnd, <span class="hljs-number">0</span>, lightCount, <span class="hljs-number">0</span>, viewIndex * lightCount, binOffset);<br><br>    <span class="hljs-comment">// Fill ZBins for reflection probes.</span><br>    FillZBins(binStart, binEnd, lightCount, lightCount + reflectionProbeCount, <span class="hljs-number">1</span>, lightCount * (viewCount - <span class="hljs-number">1</span>) + viewIndex * reflectionProbeCount, binOffset);<br>&#125;<br><br></code></pre></td></tr></table></figure>
+<p>具体更新算法见代码及其注释吧：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">FillZBins</span>(<span class="hljs-params"><span class="hljs-built_in">int</span> binStart, <span class="hljs-built_in">int</span> binEnd, <span class="hljs-built_in">int</span> itemStart, <span class="hljs-built_in">int</span> itemEnd, <span class="hljs-built_in">int</span> headerIndex, <span class="hljs-built_in">int</span> itemOffset, <span class="hljs-built_in">int</span> binOffset</span>)</span><br>&#123;<br>    <span class="hljs-comment">// 对于每个灯和反射探针</span><br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> index = itemStart; index &lt; itemEnd; index++)<br>    &#123;<br>        <span class="hljs-keyword">var</span> minMax = minMaxZs[itemOffset + index];<br>        <span class="hljs-comment">// finding which bin is affected by light/prob index</span><br>        <span class="hljs-comment">// 将view空间中的z转换为zbin的index</span><br>        <span class="hljs-keyword">var</span> minBin = math.max((<span class="hljs-built_in">int</span>)((isOrthographic ? minMax.x : math.log2(minMax.x)) * zBinScale + zBinOffset), binStart);<br>        <span class="hljs-keyword">var</span> maxBin = math.min((<span class="hljs-built_in">int</span>)((isOrthographic ? minMax.y : math.log2(minMax.y)) * zBinScale + zBinOffset), binEnd);<br>        <span class="hljs-comment">// 32 item is pack in one &#x27;word&#x27;</span><br>        <span class="hljs-comment">// 找到index对应的灯或反射探针对应哪一个zbin的block</span><br>        <span class="hljs-keyword">var</span> wordIndex = index / <span class="hljs-number">32</span>;<br>        <span class="hljs-comment">// 找到该灯或反射探针是block中的哪一个bit</span><br>        <span class="hljs-keyword">var</span> bitMask = <span class="hljs-number">1u</span> &lt;&lt; (index % <span class="hljs-number">32</span>);<br>        <span class="hljs-comment">// 更新我的任务需要更新的所有zbin</span><br>        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> binIndex = minBin; binIndex &lt;= maxBin; binIndex++)<br>        &#123;<br>            <span class="hljs-keyword">var</span> baseIndex = (binOffset + binIndex) * (headerLength + wordsPerTile);<br>            <span class="hljs-keyword">var</span> (minIndex, maxIndex) = DecodeHeader(bins[baseIndex + headerIndex]);<br>            minIndex = math.min(minIndex, (<span class="hljs-built_in">uint</span>)index);<br>            maxIndex = math.max(maxIndex, (<span class="hljs-built_in">uint</span>)index);<br>            <span class="hljs-comment">// 更新header</span><br>            <span class="hljs-comment">// EncodeHeader(minIndex, maxIndex); means we mark the min,max item index of light</span><br>            bins[baseIndex + headerIndex] = EncodeHeader(minIndex, maxIndex);<br>            <span class="hljs-comment">// 更新后面的bitset</span><br>            <span class="hljs-comment">// btmask means affect by specific item or not.</span><br>            bins[baseIndex + headerLength + wordIndex] |= bitMask;<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>至此，我们完成了整个zbinning算法，结果存储在bins数组中。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" class="category-chain-item">图形学</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E5%9B%BE%E5%BD%A2%E5%AD%A6/Unity/" class="category-chain-item">Unity</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" class="print-no-link">#图形学</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>[Unity] URP forward+算法实现 (1) —— zBinning</div>
+      <div>http://example.com/2025/04/24/Unity-URP-forward-算法实现-1-——-zBinning/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>John Doe</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年4月24日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/04/11/C-%E6%A8%A1%E6%9D%BF%E7%B3%BB%E5%88%97-%E2%80%94%E2%80%94-%E6%A8%A1%E6%9D%BF%E4%B8%AD%E7%9A%84%E5%90%8D%E7%A7%B0%E7%BB%91%E5%AE%9A%EF%BC%88Name-Binding%EF%BC%89/" title="C++模板系列 —— 模板中的名称绑定（Name Binding）">
+                        <span class="hidden-mobile">C++模板系列 —— 模板中的名称绑定（Name Binding）</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"Fo0QIqpU699rbG2Rl9lW3Vau-MdYXbMMI","appKey":"Fo0QIqpU699rbG2Rl9lW3Vau-MdYXbMMI","path":"window.location.pathname","placeholder":null,"avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
