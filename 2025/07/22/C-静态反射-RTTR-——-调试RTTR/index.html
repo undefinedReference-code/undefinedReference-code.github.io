@@ -1,0 +1,769 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前面我们已经成功跑起来一个demo，但是之前的预编译RTTR的方式存在很多问题。 预编译RTTR将RTTR变成了一个&quot;黑盒&quot;依赖，我们无法深入到RTTR内部进行调试和分析，只能依靠外部表现和文档来猜测内部的运行机制，这种盲目调试的方式不仅效率低下，而且难以真正理解问题的根源。 此外，预编译方式需要维护复杂的路径配置和多步构建流程，容易因为路径错误、版本不匹配或编译配置差异导致链">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C++静态反射 RTTR —— 调试RTTR">
+<meta property="og:url" content="http://example.com/2025/07/22/C-%E9%9D%99%E6%80%81%E5%8F%8D%E5%B0%84-RTTR-%E2%80%94%E2%80%94-%E8%B0%83%E8%AF%95RTTR/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="前面我们已经成功跑起来一个demo，但是之前的预编译RTTR的方式存在很多问题。 预编译RTTR将RTTR变成了一个&quot;黑盒&quot;依赖，我们无法深入到RTTR内部进行调试和分析，只能依靠外部表现和文档来猜测内部的运行机制，这种盲目调试的方式不仅效率低下，而且难以真正理解问题的根源。 此外，预编译方式需要维护复杂的路径配置和多步构建流程，容易因为路径错误、版本不匹配或编译配置差异导致链">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-07-22T15:42:09.000Z">
+<meta property="article:modified_time" content="2025-07-22T15:44:13.876Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="c++反射">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>C++静态反射 RTTR —— 调试RTTR - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/KaTeX/0.16.2/katex.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":"Fo0QIqpU699rbG2Rl9lW3Vau-MdYXbMMI","app_key":"z8m7WlbfobcDyEJnhla5kN5Z","server_url":"https://fo0qiqpu.api.lncldglobal.com","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="C++静态反射 RTTR —— 调试RTTR"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-07-22 23:42" pubdate>
+          2025年7月22日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.8k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          15 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="leancloud-page-views"></span> 次
+        </span>
+        
+      
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">C++静态反射 RTTR —— 调试RTTR</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>前面我们已经成功跑起来一个demo，但是之前的预编译RTTR的方式存在很多问题。</p>
+<p>预编译RTTR将RTTR变成了一个&quot;黑盒&quot;依赖，我们无法深入到RTTR内部进行调试和分析，只能依靠外部表现和文档来猜测内部的运行机制，这种盲目调试的方式不仅效率低下，而且难以真正理解问题的根源。</p>
+<p>此外，预编译方式需要维护复杂的路径配置和多步构建流程，容易因为路径错误、版本不匹配或编译配置差异导致链接问题。</p>
+<p>同时，这种方式完全阻断了学习RTTR内部实现的机会，无法了解反射系统的设计原理、类型注册机制、或是方法调用的具体实现</p>
+<p>于是，我们通过<code>add_subdirectory</code>​的方式集成RTTR</p>
+<h1>概况</h1>
+<p>首先，我们的项目结构如下：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs csharp">RTTR_Demo/                          <br>├── main.cpp                        <br>├── CMakeLists.txt                   <br>└── External/                       <br>    └── rttr/                        <br>        ├── ....          <br></code></pre></td></tr></table></figure>
+<p>我们使用的新的CMakeLists.txt如下:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs csharp">cmake_minimum_required(VERSION <span class="hljs-number">3.15</span>)<br>project(RTTR_Demo)<br><br><span class="hljs-keyword">set</span>(CMAKE_CXX_STANDARD <span class="hljs-number">17</span>)<br><span class="hljs-keyword">set</span>(CMAKE_CXX_STANDARD_REQUIRED ON)<br><br><span class="hljs-keyword">set</span>(BUILD_STATIC ON CACHE BOOL <span class="hljs-string">&quot;Build RTTR as static library&quot;</span>)<br><span class="hljs-keyword">set</span>(BUILD_DOCUMENTATION OFF CACHE BOOL <span class="hljs-string">&quot;Build documentation&quot;</span>)<br><span class="hljs-keyword">set</span>(BUILD_EXAMPLES OFF CACHE BOOL <span class="hljs-string">&quot;Build examples&quot;</span>)<br><span class="hljs-keyword">set</span>(BUILD_UNIT_TESTS OFF CACHE BOOL <span class="hljs-string">&quot;Build unit tests&quot;</span>)<br><span class="hljs-keyword">set</span>(BUILD_BENCHMARKS OFF CACHE BOOL <span class="hljs-string">&quot;Build benchmarks&quot;</span>)<br><br><span class="hljs-keyword">set</span>(BUILD_INSTALLER OFF CACHE BOOL <span class="hljs-string">&quot;Don&#x27;t build package installer&quot;</span>)<br><span class="hljs-keyword">set</span>(BUILD_PACKAGE OFF CACHE BOOL <span class="hljs-string">&quot;Don&#x27;t build package&quot;</span>)<br><span class="hljs-keyword">set</span>(BUILD_PACKAGE_SUFFIX <span class="hljs-string">&quot;&quot;</span> CACHE STRING <span class="hljs-string">&quot;No package suffix&quot;</span>)<br><br>add_subdirectory(External/rttr)<br><br>add_executable(main_app main.cpp)<br><br>target_link_libraries(main_app PRIVATE rttr_core_lib)<br><br>target_include_directories(main_app PRIVATE <br>    $&lt;TARGET_PROPERTY:rttr_core_lib,INTERFACE_INCLUDE_DIRECTORIES&gt;<br>)<br><br>set_target_properties(main_app PROPERTIES<br>    RUNTIME_OUTPUT_DIRECTORY <span class="hljs-string">&quot;$&#123;CMAKE_BINARY_DIR&#125;/bin&quot;</span><br>    LIBRARY_OUTPUT_DIRECTORY <span class="hljs-string">&quot;$&#123;CMAKE_BINARY_DIR&#125;/lib&quot;</span><br>    ARCHIVE_OUTPUT_DIRECTORY <span class="hljs-string">&quot;$&#123;CMAKE_BINARY_DIR&#125;/lib&quot;</span><br>)<br><br>set_property(GLOBAL PROPERTY USE_FOLDERS ON)<br></code></pre></td></tr></table></figure>
+<p>和之前主要的区别如下：</p>
+<ul>
+<li>将RTTR的编译集成到main.cpp的编译</li>
+<li>不需要install RTTR</li>
+<li>由CMake自动推导头文件和静态库的位置</li>
+</ul>
+<p>下面，我将详细介绍上述CMakeLists.txt的设计思路。</p>
+<h1>传入CACHE变量</h1>
+<p>首先，之前在编译RTTR的时候，我们需要传入一些变量，例如：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs csharp">cmake .. -G <span class="hljs-string">&quot;Visual Studio 17 2022&quot;</span> -A x64 ^<br>         -DCMAKE_INSTALL_PREFIX=<span class="hljs-string">&quot;install&quot;</span> ^<br>         -DBUILD_STATIC=ON ^<br>         -DBUILD_DOCUMENTATION=OFF ^<br>         -DBUILD_EXAMPLES=OFF ^<br>         -DBUILD_UNIT_TESTS=OFF ^<br>		 -DBUILD_BENCHMARKS=OFF<br></code></pre></td></tr></table></figure>
+<p>这里的-DX就相当于传入Cache变量，所以为了方便，我直接将Cache变量Hardcode在CMakeLists的开头。</p>
+<blockquote>
+<p>顺带讲一句，Cache和普通的变量 set(BUILD_STATIC ON) 的不同之处在于，后者是局部变量，不能跨CMakeLists文件传递，而我们是要将变量传递到RTTR编译的时候，所以不能使用局部变量。</p>
+</blockquote>
+<h1>禁用打包</h1>
+<p>除此之外，我还禁用了原本RTTR的打包功能，这是通过</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><span class="hljs-keyword">set</span>(BUILD_INSTALLER OFF CACHE BOOL <span class="hljs-string">&quot;Don&#x27;t build package installer&quot;</span>)<br><span class="hljs-keyword">set</span>(BUILD_PACKAGE OFF CACHE BOOL <span class="hljs-string">&quot;Don&#x27;t build package&quot;</span>)<br><span class="hljs-keyword">set</span>(BUILD_PACKAGE_SUFFIX <span class="hljs-string">&quot;&quot;</span> CACHE STRING <span class="hljs-string">&quot;No package suffix&quot;</span>)<br></code></pre></td></tr></table></figure>
+<p>在将RTTR作为子项目集成到我们的应用中时，引入这些CMake选项的目的是为了防止RTTR的打包和安装配置干扰我们自己的项目构建流程。默认情况下，RTTR可能会启用CPack打包功能，这会在我们的项目中生成不必要的安装包配置、创建额外的打包目标。</p>
+<p>除此之外，如果不禁用打包功能，还会造成编译失败，当我们执行CMake配置的时候，会出现</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs csharp">CMake Error at C:/Program Files/CMake/share/cmake<span class="hljs-number">-3.28</span>/Modules/CPack.cmake:<span class="hljs-number">685</span> (message):<br>  CPack license resource <span class="hljs-keyword">file</span>: <span class="hljs-string">&quot;D:/RTTR_Demo/LICENSE.txt&quot;</span> could<br>  <span class="hljs-keyword">not</span> be found.<br><span class="hljs-function">Call <span class="hljs-title">Stack</span> (<span class="hljs-params">most recent call first</span>):</span><br><span class="hljs-function">  C:/Program Files/CMake/share/cmake-3.28/Modules/CPack.cmake:690 (<span class="hljs-params">cpack_check_file_exists</span>)</span><br><span class="hljs-function">  External/rttr/CMake/installer.cmake:71 (<span class="hljs-params">include</span>)</span><br><span class="hljs-function">  External/rttr/CMakeLists.txt:79 (<span class="hljs-params">include</span>)</span><br></code></pre></td></tr></table></figure>
+<p>查看CMake源码可以看到，在<code>External/rttr/CMakeLists.txt:79</code>​有以下代码</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><span class="hljs-keyword">if</span> (BUILD_PACKAGE)<br>    include(installer)<br>endif()<br></code></pre></td></tr></table></figure>
+<p>而在installer中有如下的要求：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><span class="hljs-keyword">set</span>(CPACK_RESOURCE_FILE_README <span class="hljs-string">&quot;$&#123;README_FILE&#125;&quot;</span>)<br><span class="hljs-keyword">set</span>(CPACK_PACKAGE_DESCRIPTION_FILE <span class="hljs-string">&quot;$&#123;README_FILE&#125;&quot;</span>)<br><span class="hljs-keyword">set</span>(CPACK_RESOURCE_FILE_LICENSE <span class="hljs-string">&quot;$&#123;LICENSE_FILE&#125;&quot;</span>)<br></code></pre></td></tr></table></figure>
+<p>而这两个变量的定义如下：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><span class="hljs-keyword">set</span>(README_FILE <span class="hljs-string">&quot;$&#123;CMAKE_SOURCE_DIR&#125;/README.md&quot;</span>)<br><span class="hljs-keyword">set</span>(LICENSE_FILE <span class="hljs-string">&quot;$&#123;CMAKE_SOURCE_DIR&#125;/LICENSE.txt&quot;</span>)<br></code></pre></td></tr></table></figure>
+<p>CMAKE_SOURCE_DIR指向最顶层从CMakeLists.txt，CMAKE_SOURCE_DIR在之前我们预编译rttr的时候，指向的是RTTR仓库的根目录，所以一切正常，而我们的当前项目的根目录没有README和LICENSE文件，所以方便起见，我直接禁用了安装。</p>
+<h1>添加编译目标</h1>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs csharp">add_subdirectory(External/rttr)<br><br>add_executable(main_app main.cpp)<br></code></pre></td></tr></table></figure>
+<p>接下来很简单，我们需要告诉CMake，编译rttr库并编译我们的main.cpp</p>
+<h1>添加链接库和头文件</h1>
+<p>这里和之前不一样，由于之前我们使用了rttr内置的installer，所以我们明确知道静态库和头文件的路径，当我们设置BUILD_INSTALLER OFF禁用安装后，传统的通过安装路径查找库文件的方式失效了，我们无法再依赖<code>&#123;RTTR_INSTALL_DIR&#125;/include</code>​和{<code>RTTR_INSTALL_DIR&#125;/lib/librttr_core.lib</code>​这样的预定义安装路径。</p>
+<p>通过<code>add_subdirectory(External/rttr)</code>​和<code>set(BUILD_STATIC ON CACHE BOOL &quot;Build RTTR as static library&quot;)</code>​，RTTR的CMake文件在当前项目的构建上下文中创建了rttr_core_lib这个目标，此时我们可以直接通过目标名称引用它，而不需要知道具体的文件路径。<code>target_link_libraries(main_app PRIVATE rttr_core_lib)</code>​让CMake在项目范围内查找这个已注册的目标，建立链接关系。更进一步地，应该如何确定<code>rttr_core_lib</code>​这个目标呢？在RTTR的源码中，我们会发现当BUILD_STATIC为真时，有如下的代码：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><span class="hljs-keyword">if</span> (BUILD_STATIC)<br>    add_library(rttr_core_lib STATIC $&#123;UnityBuild&#125; $&#123;SRC_FILES&#125; $&#123;HPP_FILES&#125;)<br>	<span class="hljs-meta"># ......</span><br></code></pre></td></tr></table></figure>
+<p>而对于头文件，我们在target_include_directories中使用生成器表达式<code>$&lt;TARGET_PROPERTY:rttr_core_lib,INTERFACE_INCLUDE_DIRECTORIES&gt;</code>​。我们不再硬编码具体的头文件路径，而是让CMake从rttr_core_lib目标中动态获取其公开的包含目录，这种做法确保了当RTTR的目录结构发生变化时，我们的配置能够自动适应。</p>
+<h1>统一管理输出目标</h1>
+<p>set_target_properties这段代码统一管理main_app目标的输出文件位置，避免了默认情况下文件散乱分布的问题。<code>RUNTIME_OUTPUT_DIRECTORY</code>​将可执行文件（.exe）输出到<code>&#123;CMAKE_BINARY_DIR&#125;/bin</code>​目录，<code>LIBRARY_OUTPUT_DIRECTORY</code>​将动态库（.dll/.so）输出到<code>&#123;CMAKE_BINARY_DIR&#125;/lib</code>​目录，而<code>ARCHIVE_OUTPUT_DIRECTORY</code>​将静态库（.lib/.a）也输出到<code>$&#123;CMAKE_BINARY_DIR&#125;/lib</code>​目录。这样做的好处是创建了清晰的输出结构：可执行文件在bin文件夹，所有库文件在lib文件夹，便于部署和调试，特别是在Windows下，可执行文件和依赖的DLL可以分别放在合适的位置。</p>
+<h1>启用了IDE中的文件夹组织功能</h1>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs csharp">set_property(GLOBAL PROPERTY USE_FOLDERS ON)<br></code></pre></td></tr></table></figure>
+<p>最后，我们使用<code>set_property(GLOBAL PROPERTY USE_FOLDERS ON)</code>​启用了IDE中的<strong>文件夹组织功能。</strong> 这主要针对Visual Studio等支持解决方案文件夹的IDE。当启用后，CMake生成的项目文件会将不同的目标按逻辑关系组织到文件夹中，比如可以将所有第三方库放在&quot;External&quot;文件夹下，将测试相关的目标放在&quot;Tests&quot;文件夹下，而不是在解决方案资源管理器中看到一个扁平的目标列表。这对于包含多个子项目（如您的项目包含main_app和rttr相关的多个目标）的解决方案尤其重要，能够大大提升开发时的导航效率和项目可读性。</p>
+<h1>总结</h1>
+<p>这篇文章更多注重了CMakeLists.txt的讲解，虽然和具体的C++设计关系不大，但是通过深入阅读RTTR的CMake配置文件，我获得了许多宝贵的工程经验，我也希望在阅读开源代码的过程中，不仅可以学习编程语言本身，而且可以了解项目的构建系统和工程实践。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/c/" class="category-chain-item">c++</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/c/%E6%A8%A1%E6%9D%BF/" class="category-chain-item">模板</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/c/%E6%A8%A1%E6%9D%BF/%E5%8F%8D%E5%B0%84/" class="category-chain-item">反射</a>
+  
+  
+
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/c-%E5%8F%8D%E5%B0%84/" class="print-no-link">#c++反射</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>C++静态反射 RTTR —— 调试RTTR</div>
+      <div>http://example.com/2025/07/22/C-静态反射-RTTR-——-调试RTTR/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>John Doe</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年7月22日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/07/18/RTTR%E7%B3%BB%E5%88%97-%E2%80%94%E2%80%94-%E8%BF%90%E8%A1%8C%E7%AC%AC%E4%B8%80%E4%B8%AARTTR-Demo/" title="C++静态反射 RTTR —— 运行第一个RTTR Demo">
+                        <span class="hidden-mobile">C++静态反射 RTTR —— 运行第一个RTTR Demo</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"Fo0QIqpU699rbG2Rl9lW3Vau-MdYXbMMI","appKey":"Fo0QIqpU699rbG2Rl9lW3Vau-MdYXbMMI","path":"window.location.pathname","placeholder":null,"avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
