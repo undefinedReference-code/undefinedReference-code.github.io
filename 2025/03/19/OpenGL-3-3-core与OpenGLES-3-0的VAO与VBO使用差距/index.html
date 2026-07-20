@@ -22,12 +22,12 @@
     <meta name="description" content="背景 学完《Learn OpenGL》之后，又开始看安卓端的OpenGLES，发现有如下代码： 12345678910&#x2F;&#x2F; 这是用于GLES  GLfloat vVertices[] &#x3D; &#123;      0.0f,  0.5f, 0.0f,      -0.5f, -0.5f, 0.0f,      0.5f, -0.5f, 0.0f,  &#125;;  &#x2F;&#x2F; Load the vert">
 <meta property="og:type" content="article">
 <meta property="og:title" content="OpenGL 3.3 core与OpenGLES 3.0的VAO与VBO使用差距">
-<meta property="og:url" content="http://example.com/2025/03/19/OpenGL-3-3-core%E4%B8%8EOpenGLES-3-0%E7%9A%84VAO%E4%B8%8EVBO%E4%BD%BF%E7%94%A8%E5%B7%AE%E8%B7%9D/index.html">
+<meta property="og:url" content="https://undefinedreference-code.github.io/2025/03/19/OpenGL-3-3-core%E4%B8%8EOpenGLES-3-0%E7%9A%84VAO%E4%B8%8EVBO%E4%BD%BF%E7%94%A8%E5%B7%AE%E8%B7%9D/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="背景 学完《Learn OpenGL》之后，又开始看安卓端的OpenGLES，发现有如下代码： 12345678910&#x2F;&#x2F; 这是用于GLES  GLfloat vVertices[] &#x3D; &#123;      0.0f,  0.5f, 0.0f,      -0.5f, -0.5f, 0.0f,      0.5f, -0.5f, 0.0f,  &#125;;  &#x2F;&#x2F; Load the vert">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2025-03-19T15:09:08.000Z">
-<meta property="article:modified_time" content="2025-03-19T15:10:05.542Z">
+<meta property="article:published_time" content="2025-03-19T23:09:08.000Z">
+<meta property="article:modified_time" content="2026-07-20T14:41:51.356Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="图形学API">
 <meta name="twitter:card" content="summary_large_image">
@@ -74,7 +74,7 @@
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
     Fluid.ctx = Object.assign({}, Fluid.ctx)
-    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":"Fo0QIqpU699rbG2Rl9lW3Vau-MdYXbMMI","app_key":"z8m7WlbfobcDyEJnhla5kN5Z","server_url":"https://fo0qiqpu.api.lncldglobal.com","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+    var CONFIG = {"hostname":"undefinedreference-code.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":"Fo0QIqpU699rbG2Rl9lW3Vau-MdYXbMMI","app_key":"z8m7WlbfobcDyEJnhla5kN5Z","server_url":"https://fo0qiqpu.api.lncldglobal.com","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
 
     if (CONFIG.web_analytics.follow_dnt) {
       var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
@@ -376,7 +376,7 @@
   <div class="license-box my-3">
     <div class="license-title">
       <div>OpenGL 3.3 core与OpenGLES 3.0的VAO与VBO使用差距</div>
-      <div>http://example.com/2025/03/19/OpenGL-3-3-core与OpenGLES-3-0的VAO与VBO使用差距/</div>
+      <div>https://undefinedreference-code.github.io/2025/03/19/OpenGL-3-3-core与OpenGLES-3-0的VAO与VBO使用差距/</div>
     </div>
     <div class="license-meta">
       

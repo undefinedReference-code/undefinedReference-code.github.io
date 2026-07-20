@@ -1,0 +1,773 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="AI Agent学习笔记 —— Agent 基本概念 翻转互动模式：当AI从回答者变身为提问者，一切才刚刚开始 在人与AI的传统互动中，我们早已习惯了一个固定模式：​​人类提问，AI回答。无论是“明天的天气如何？”还是“请写一首关于春天的诗”，我们都是那个发出指令、开启对话的主导者。AI则扮演着一位知识渊博、有问必答的“助手”，在收到清晰的指令后，尽其所能地给出最佳回应。 然而，一个强大而巧妙的应">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AI Agent学习笔记 —— Agent 基本概念">
+<meta property="og:url" content="https://undefinedreference-code.github.io/2025/12/27/AI-Agent%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E2%80%94%E2%80%94-Agent-%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="AI Agent学习笔记 —— Agent 基本概念 翻转互动模式：当AI从回答者变身为提问者，一切才刚刚开始 在人与AI的传统互动中，我们早已习惯了一个固定模式：​​人类提问，AI回答。无论是“明天的天气如何？”还是“请写一首关于春天的诗”，我们都是那个发出指令、开启对话的主导者。AI则扮演着一位知识渊博、有问必答的“助手”，在收到清晰的指令后，尽其所能地给出最佳回应。 然而，一个强大而巧妙的应">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://undefinedreference-code.github.io/2025/12/27/AI-Agent%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E2%80%94%E2%80%94-Agent-%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/assets/network-asset-v2-be9ba2601006abdc3c1131ace48c3ae5_r-20251227222754-7egwdf8.jpg">
+<meta property="og:image" content="https://undefinedreference-code.github.io/2025/12/27/AI-Agent%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E2%80%94%E2%80%94-Agent-%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/assets/network-asset-v2-4a35670d1674de536daa668edeb84615_r-20251227222754-3uzgcsm.jpg">
+<meta property="og:image" content="https://undefinedreference-code.github.io/2025/12/27/AI-Agent%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E2%80%94%E2%80%94-Agent-%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/assets/network-asset-v2-2ef5e72ba734b01bd50d1c0b9e1280f5_r-20251227222754-pxi7sc7.jpg">
+<meta property="article:published_time" content="2025-12-27T22:25:54.000Z">
+<meta property="article:modified_time" content="2026-07-20T14:41:51.354Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="人工智能">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://undefinedreference-code.github.io/2025/12/27/AI-Agent%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E2%80%94%E2%80%94-Agent-%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/assets/network-asset-v2-be9ba2601006abdc3c1131ace48c3ae5_r-20251227222754-7egwdf8.jpg">
+  
+  
+  
+  <title>AI Agent学习笔记 —— Agent 基本概念 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/KaTeX/0.16.2/katex.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"undefinedreference-code.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":"Fo0QIqpU699rbG2Rl9lW3Vau-MdYXbMMI","app_key":"z8m7WlbfobcDyEJnhla5kN5Z","server_url":"https://fo0qiqpu.api.lncldglobal.com","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="AI Agent学习笔记 —— Agent 基本概念"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-12-27 22:25" pubdate>
+          2025年12月27日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          20 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="leancloud-page-views"></span> 次
+        </span>
+        
+      
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">AI Agent学习笔记 —— Agent 基本概念</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1>AI Agent学习笔记 —— Agent 基本概念</h1>
+<h2 id="翻转互动模式：当AI从回答者变身为提问者，一切才刚刚开始">翻转互动模式：当AI从回答者变身为提问者，一切才刚刚开始</h2>
+<p>在人与AI的传统互动中，我们早已习惯了一个固定模式：​​<strong>人类提问，AI回答</strong>。无论是“明天的天气如何？”还是“请写一首关于春天的诗”，我们都是那个发出指令、开启对话的主导者。AI则扮演着一位知识渊博、有问必答的“助手”，在收到清晰的指令后，尽其所能地给出最佳回应。</p>
+<p>然而，一个强大而巧妙的应用技巧，正在悄然改变这一格局——​<strong>Flipped Interaction Pattern（翻转互动模式）</strong>  。它通过一个简单的角色对调，将AI从被动的回答者，转变为主动的提问者和引导者。这一翻转，不仅是对话流程的变化，更是AI从“工具”迈向“智能体（Agent）”的关键起点。</p>
+<p>它的核心在于：<strong>当人类的需求本身是模糊或复杂时，最有效的帮助并非直接给出答案，而是先帮助人类厘清问题本身。</strong>  大语言模型所具备的理解上下文、灵活推理的能力，使其能够胜任这个“引导者”的角色。它可以根据我们给出的初步意图，主动规划出获取关键信息的路径，通过一系列有逻辑的提问，在收集到足够的信息之后，再做出决策。</p>
+<p>让我们看一个具体的例子。假设你想在纳什维尔找一家今晚用餐的餐厅，但自己还没想清楚所有细节。传统模式下，你可能需要费力地罗列出所有要求；而在翻转模式下，你只需将初步意图交给AI：</p>
+<blockquote>
+<p>我：请逐一问我问题，以便收集足够的信息，为我在田纳西州纳什维尔推荐一家今晚用餐的餐厅。请提出第一个问题。<br>
+AI：你今晚想吃什么菜系？<br>
+我：德州-墨西哥菜。<br>
+AI：你有什么饮食限制或偏好吗？<br>
+我：没有。<br>
+AI：你更喜欢休闲餐饮还是更高级的体验？<br>
+我：呃…适合带孩子的。<br>
+AI：你喜欢有户外座位还是室内座位的餐厅，或者无所谓？<br>
+我：无所谓，反正下雨！</p>
+</blockquote>
+<p>从上面的例子可以看出，对话的主导权发生了转移。AI不再是等待一个完美指令的工具，而是成为了协作思考的伙伴。它主动构建了一个动态的信息收集框架，每一个新问题都基于之前的回答，整个过程自然、高效，最终汇聚成一份个性化的完美推荐。</p>
+<h2 id="智能体循环（The-Agent-Loop）——-从思考到行动的自动化引擎"><strong>智能体循环（The Agent Loop）—— 从思考到行动的自动化引擎</strong></h2>
+<p>在上一章节我们探讨了“翻转互动模式”，看到了AI如何从被动的回答者转变为主动的提问者，以引导对话、澄清需求。这揭示了智能体（Agent）的一个基本特质：​<strong>为达成目标而进行动态规划与交互</strong>。</p>
+<p>然而，在餐厅推荐的例子中，AI的“行动”仅限于提出下一个问题，其“执行”环节（例如实际查询数据库、筛选餐厅）仍需要人类用户自己在脑海中完成。如果我们希望AI能真正自主地完成任务，比如自动填写报销单、自动生成并执行数据查询，就需要一套更强大的机制。这正是<strong>智能体循环（Agent Loop）</strong>  所要解决的问题。</p>
+<p>在一些任务中，我们希望Agent可以自动通过我们的<a target="_blank" rel="noopener" href="https://zhida.zhihu.com/search?content_id=268091617&amp;content_type=Article&amp;match_order=1&amp;q=API&amp;zhida_source=entity">API</a>去“询问”并操作周围的环境（如数据库、文件系统、网络服务），从环境中获取反馈并处理结果，中间完全不需要人类的参与。下图（图1）就描绘了这一理想场景：人类发出“帮我报销这笔交通费”的指令后，AI智能体自动与计算机（代表一个表格应用）进行多轮交互，最终完成任务。</p>
+<p><img src="/2025/12/27/AI-Agent%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E2%80%94%E2%80%94-Agent-%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/assets/network-asset-v2-be9ba2601006abdc3c1131ace48c3ae5_r-20251227222754-7egwdf8.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>此图展示了智能体在收到“Help me add this travel expense”指令后，自动执行“列出表格行”和“添加新行”两个动作，与计算机系统协作完成任务的过程。这体现了智能体超越对话，能直接驱动外部工具的能力</p>
+<p><strong>循环的齿轮：思考、行动、观察</strong></p>
+<p>如何实现图1中的自动化？其核心是一个由大语言模型驱动的循环过程。这个循环包含了几个核心阶段，它们共同构成了智能体的“思考-行动”闭环。</p>
+<ul>
+<li><strong>思考：模型推理与任务分解</strong></li>
+</ul>
+<p>在此阶段，大语言模型扮演着“大脑”的角色。它会分析用户的整体目标（例如“帮我报销这笔交通费”），并将其​<strong>分解为一系列逻辑子任务</strong>​，比如<code>[理解报销项目] -&gt; [定位目标表格] -&gt; [确认表格结构] -&gt; [格式化并插入数据]</code>​。同时，模型会<strong>判断当前需要解决哪个子任务，以及需要调用哪个工具</strong>来获取信息，比如决定首先调用“数据库查询工具”来列出表格现有行，以了解数据结构。</p>
+<ul>
+<li><strong>行动：调用工具</strong></li>
+</ul>
+<p>根据思考阶段的决策，智能体会​​<strong>自主生成指令，并调用相应的外部工具或API</strong>。这正是智能体超越纯文本生成，能够“采取行动”的关键。在图1中，这个行动体现为AI向计算机发出“List rows in spreadsheet ‘TravelExpenses’”的指令。</p>
+<ul>
+<li><strong>观察：获取工具结果</strong></li>
+</ul>
+<p>行动之后，智能体会​<strong>接收工具执行后的反馈结果</strong>​。这个结果可能是结构化的数据（如JSON格式的表格行），但为了便于模型理解，通常会将其转换为​​<strong>自然语言描述</strong>。这个结果会被添加到对话上下文中，作为下一轮“思考”的新输入。图1中，计算机返回的“Rows”就是一次观察结果。</p>
+<ul>
+<li><strong>循环与判断</strong></li>
+</ul>
+<p>“观察”到的结果会促使循环进入下一轮。智能体会再次进行“思考”，评估现有信息是否足以完成任务。如果不能，它将规划下一步行动（例如，在了解表格结构后，下一步是“添加行”）；如果能，则​​<strong>合成所有步骤得到的信息，生成最终结论并结束循环</strong>。循环的终止条件通常是任务完成、达到最大迭代次数或遇到无法解决的错误。</p>
+<p>下图（图2）清晰地勾勒出了这个包含人类、AI、计算机三方的核心循环流程。</p>
+<p><img src="/2025/12/27/AI-Agent%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E2%80%94%E2%80%94-Agent-%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/assets/network-asset-v2-4a35670d1674de536daa668edeb84615_r-20251227222754-3uzgcsm.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+<h3 id="工程实现的关键：从“灵活响应”到“可解析指令”"><strong>工程实现的关键：从“灵活响应”到“可解析指令”</strong></h3>
+<p>理想很美好，但工程实现面临一个核心挑战：大语言模型的输出是灵活的自然语言，而计算机系统需要的是结构化、可精准执行的指令。如果每次都需要人类手动解读AI的响应并执行操作（例如，手动复制AI生成的代码去运行），就完全失去了自动化的意义。</p>
+<p>我们的目标是：<strong>人类用自然语言为Agent描述一个目标，大模型自动将目标拆解为一个个“调用（Call）”，这些调用能自动转换为对计算机系统的操作指令，并执行，直到完成目标。</strong></p>
+<p>具体来讲，我们给大模型一个输入提示（Prompt），得到大模型的响应（Response）。接下来，​<strong>我们需要能自动地将这个响应解析（Parse）成一个具体的、可程序化执行的行动（Action）</strong>  。行动执行后，将其结果作为下一轮提示的一部分，继续循环。</p>
+<p><strong>其中的关键在于如何控制大模型的输出，使其便于被后续程序解析。</strong>  解析过程依赖的是传统的、确定性的软件工程代码，它无法可靠地处理千变万化的自然语言表达。为了解决这个问题，我们通常在给大模型的“系统提示（System Prompt）”中做出严格约定，要求其以特定的结构化格式（例如JSON、XML或带有明确标记的文本）进行响应。这样，一个独立的“解析器（Parser）”模块就能可靠地从响应中提取出“工具名称”和“调用参数”，然后交给“执行器（Executor）”去调用对应的API。</p>
+<p>下图（图3）则从工程实现视角，进一步拆解了“Agent Loop”内部的一个完整迭代步骤，特别是包含了“解析响应（Parse Response）”这个关键环节。</p>
+<p><img src="/2025/12/27/AI-Agent%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E2%80%94%E2%80%94-Agent-%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/assets/network-asset-v2-2ef5e72ba734b01bd50d1c0b9e1280f5_r-20251227222754-pxi7sc7.jpg" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>此图详细说明了智能体在一次循环内的微观步骤：1. 构建提示；2. 生成响应；3. ​解析响应；4. 执行动作；5. 将结果转换为字符串；6. 判断是否继续循环。它明确了“解析”是将大模型的语言响应转化为机器可执行动作的必经桥梁，是实现全自动闭环的核心。</p>
+<p>通过将<strong>灵活的自然语言推理</strong>与<strong>确定性的程序化执行</strong>相结合，智能体循环为AI赋予了一只“无形之手”，使其能够主动探索环境、操作工具，并最终独立完成复杂的、多步骤的数字化任务。这，便是智能体强大能力的自动化基石。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/" class="category-chain-item">人工智能</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/AI-Agent/" class="category-chain-item">AI Agent</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/" class="print-no-link">#人工智能</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>AI Agent学习笔记 —— Agent 基本概念</div>
+      <div>https://undefinedreference-code.github.io/2025/12/27/AI-Agent学习笔记-——-Agent-基本概念/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>John Doe</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年12月27日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/12/27/%E6%90%AD%E5%BB%BAAI%E6%99%BA%E8%83%BD%E4%BD%93%E7%9A%84%E4%B8%A4%E5%A4%A7%E5%9F%BA%E7%9F%B3%EF%BC%9A%E5%8F%AF%E7%BC%96%E7%A8%8B%E8%B0%83%E7%94%A8%E4%B8%8E%E8%AE%B0%E5%BF%86%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89%E2%80%94%E2%80%94-%E5%8F%AF%E7%BC%96%E7%A8%8B%E8%B0%83%E7%94%A8/" title="AI Agent学习笔记 —— 搭建AI智能体的两大基石：可编程调用与记忆管理（1）—— 可编程调用">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">AI Agent学习笔记 —— 搭建AI智能体的两大基石：可编程调用与记忆管理（1）—— 可编程调用</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/09/18/C-%E9%9D%99%E6%80%81%E5%8F%8D%E5%B0%84-RTTR-%E2%80%94%E2%80%94-RTTR%E7%9A%84%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5/" title="C++静态反射 RTTR —— RTTR的核心概念">
+                        <span class="hidden-mobile">C++静态反射 RTTR —— RTTR的核心概念</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"Fo0QIqpU699rbG2Rl9lW3Vau-MdYXbMMI","appKey":"Fo0QIqpU699rbG2Rl9lW3Vau-MdYXbMMI","path":"window.location.pathname","placeholder":null,"avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

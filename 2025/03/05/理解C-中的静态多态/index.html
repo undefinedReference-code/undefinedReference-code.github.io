@@ -22,12 +22,12 @@
     <meta name="description" content="在软件开发中，多态性是一种重要的面向对象编程特性，它允许不同类的对象对同一消息做出不同的响应。实现多态主要有两种方式：动态多态和静态多态。本文将通过实例分析这两种实现方式，静态多态又有两种实现方式，一种是比较朴素直接的方式，另一种是CRTP（Curiously Recurring Template Pattern）模式。此外，我们还将探讨CRTP模式的适用场景及其优缺点。 动态多态实现 动态多态（">
 <meta property="og:type" content="article">
 <meta property="og:title" content="C++模板系列 —— 理解C++中的静态多态">
-<meta property="og:url" content="http://example.com/2025/03/05/%E7%90%86%E8%A7%A3C-%E4%B8%AD%E7%9A%84%E9%9D%99%E6%80%81%E5%A4%9A%E6%80%81/index.html">
+<meta property="og:url" content="https://undefinedreference-code.github.io/2025/03/05/%E7%90%86%E8%A7%A3C-%E4%B8%AD%E7%9A%84%E9%9D%99%E6%80%81%E5%A4%9A%E6%80%81/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="在软件开发中，多态性是一种重要的面向对象编程特性，它允许不同类的对象对同一消息做出不同的响应。实现多态主要有两种方式：动态多态和静态多态。本文将通过实例分析这两种实现方式，静态多态又有两种实现方式，一种是比较朴素直接的方式，另一种是CRTP（Curiously Recurring Template Pattern）模式。此外，我们还将探讨CRTP模式的适用场景及其优缺点。 动态多态实现 动态多态（">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2025-03-05T14:52:36.000Z">
-<meta property="article:modified_time" content="2025-03-23T15:42:05.378Z">
+<meta property="article:published_time" content="2025-03-05T22:52:36.000Z">
+<meta property="article:modified_time" content="2026-07-20T14:41:51.360Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="c++模板">
 <meta name="twitter:card" content="summary_large_image">
@@ -74,7 +74,7 @@
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
     Fluid.ctx = Object.assign({}, Fluid.ctx)
-    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":"Fo0QIqpU699rbG2Rl9lW3Vau-MdYXbMMI","app_key":"z8m7WlbfobcDyEJnhla5kN5Z","server_url":"https://fo0qiqpu.api.lncldglobal.com","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+    var CONFIG = {"hostname":"undefinedreference-code.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":"Fo0QIqpU699rbG2Rl9lW3Vau-MdYXbMMI","app_key":"z8m7WlbfobcDyEJnhla5kN5Z","server_url":"https://fo0qiqpu.api.lncldglobal.com","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
 
     if (CONFIG.web_analytics.follow_dnt) {
       var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
@@ -414,7 +414,7 @@
   <div class="license-box my-3">
     <div class="license-title">
       <div>C++模板系列 —— 理解C++中的静态多态</div>
-      <div>http://example.com/2025/03/05/理解C-中的静态多态/</div>
+      <div>https://undefinedreference-code.github.io/2025/03/05/理解C-中的静态多态/</div>
     </div>
     <div class="license-meta">
       

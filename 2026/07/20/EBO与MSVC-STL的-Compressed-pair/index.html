@@ -1,0 +1,1072 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="从空类的对象布局出发，理解 EBO、unique_ptr 删除器压缩、MSVC STL 的 _Compressed_pair，以及 C++20 的 no_unique_address。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从 EBO 到 MSVC STL 的 _Compressed_pair">
+<meta property="og:url" content="https://undefinedreference-code.github.io/2026/07/20/EBO%E4%B8%8EMSVC-STL%E7%9A%84-Compressed-pair/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="从空类的对象布局出发，理解 EBO、unique_ptr 删除器压缩、MSVC STL 的 _Compressed_pair，以及 C++20 的 no_unique_address。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-07-20T22:30:00.000Z">
+<meta property="article:modified_time" content="2026-07-20T14:41:51.356Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="C++">
+<meta property="article:tag" content="STL">
+<meta property="article:tag" content="EBO">
+<meta property="article:tag" content="内存布局">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>从 EBO 到 MSVC STL 的 _Compressed_pair - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/KaTeX/0.16.2/katex.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"undefinedreference-code.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":"Fo0QIqpU699rbG2Rl9lW3Vau-MdYXbMMI","app_key":"z8m7WlbfobcDyEJnhla5kN5Z","server_url":"https://fo0qiqpu.api.lncldglobal.com","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="从 EBO 到 MSVC STL 的 _Compressed_pair"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-07-20 22:30" pubdate>
+          2026年7月20日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          5.4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          46 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="leancloud-page-views"></span> 次
+        </span>
+        
+      
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">从 EBO 到 MSVC STL 的 _Compressed_pair</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1>背景：空类型也要占空间吗？</h1>
+<p>在讨论 EBO 之前，先建立一个直觉：<strong>「逻辑上为空」的类型，在内存里未必不占地方。</strong></p>
+<h2 id="什么是空类？">什么是空类？</h2>
+<p>下面这个 struct，没有任何<strong>数据成员</strong>：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">struct</span> <span class="hljs-title class_">Empty</span> &#123;&#125;;<br></code></pre></td></tr></table></figure>
+<p>编译器仍会为它生成默认构造、析构等函数，但用户没有声明任何需要存储的字段。这种类型通常称为<strong>空类（empty class）</strong>。</p>
+<h2 id="空类本身占多大？">空类本身占多大？</h2>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;iostream&gt;</span></span><br><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">Empty</span> &#123;&#125;;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    Empty e1, e2;<br>    std::cout &lt;&lt; <span class="hljs-string">&quot;sizeof(Empty) = &quot;</span> &lt;&lt; <span class="hljs-built_in">sizeof</span>(Empty) &lt;&lt; <span class="hljs-string">&#x27;\n&#x27;</span>;<br>    std::cout &lt;&lt; <span class="hljs-string">&quot;address e1    = &quot;</span> &lt;&lt; <span class="hljs-built_in">static_cast</span>&lt;<span class="hljs-type">void</span>*&gt;(&amp;e1) &lt;&lt; <span class="hljs-string">&#x27;\n&#x27;</span>;<br>    std::cout &lt;&lt; <span class="hljs-string">&quot;address e2    = &quot;</span> &lt;&lt; <span class="hljs-built_in">static_cast</span>&lt;<span class="hljs-type">void</span>*&gt;(&amp;e2) &lt;&lt; <span class="hljs-string">&#x27;\n&#x27;</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>在常见的 64 位平台上，输出大致是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">sizeof(Empty) = 1<br><br>address e1    = 000000143DF6F6B4<br><br>address e2    = 000000143DF6F6D4<br></code></pre></td></tr></table></figure>
+<p><code>sizeof(Empty)</code> 往往是 <strong>1</strong>，而不是 0。虽然空类没有需要保存的数据，但每个独立对象仍需要能够通过地址相互区分，数组中的每个元素也必须拥有不同的地址。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs cpp">Empty a;<br>Empty b;<br>Empty array[<span class="hljs-number">2</span>];<br><br>std::cout &lt;&lt; std::boolalpha;<br>std::cout &lt;&lt; <span class="hljs-string">&quot;&amp;a != &amp;b: &quot;</span> &lt;&lt; (&amp;a != &amp;b) &lt;&lt; <span class="hljs-string">&#x27;\n&#x27;</span>;<br>std::cout &lt;&lt; <span class="hljs-string">&quot;&amp;array[0] != &amp;array[1]: &quot;</span><br>          &lt;&lt; (&amp;array[<span class="hljs-number">0</span>] != &amp;array[<span class="hljs-number">1</span>]) &lt;&lt; <span class="hljs-string">&#x27;\n&#x27;</span>;<br></code></pre></td></tr></table></figure>
+<p>典型输出为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">&amp;a != &amp;b: true<br>&amp;array[0] != &amp;array[1]: true<br></code></pre></td></tr></table></figure>
+<p>数组元素的地址按元素大小递增：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs cpp">&amp;array[i] == array + i<br></code></pre></td></tr></table></figure>
+<p>如果 <code>sizeof(Empty) == 0</code>，不同数组元素就会落到同一个地址，无法相互区分。因此，一个普通的空类对象至少占 1 字节。这个字节并不用于保存成员数据，而是让对象拥有可区分的地址。</p>
+<p>后面介绍的空基类有所不同：它不是独立对象，而是另一个对象内部的子对象。满足条件时，编译器可以让它与派生类的其他部分共享存储，这正是 EBO 能够成立的基础。更严格的对象模型规则放在文末附录中说明。</p>
+<h2 id="空类作为成员：组合会浪费空间">空类作为成员：组合会浪费空间</h2>
+<p>问题出在「把空类和其他数据打包在一起」时。看两种写法：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">struct</span> <span class="hljs-title class_">Empty</span> &#123;&#125;;<br><br><span class="hljs-comment">// 方式 A：组合——把 Empty 当作普通成员</span><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">WithMember</span> &#123;<br>    Empty e;<br>    <span class="hljs-type">int</span>*  p;<br>&#125;;<br><br><span class="hljs-comment">// 方式 B：继承——把 Empty 当作基类</span><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">WithBase</span> : Empty &#123;<br>    <span class="hljs-type">int</span>* p;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>量一下大小：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs cpp">std::cout &lt;&lt; <span class="hljs-string">&quot;sizeof(int*)      = &quot;</span> &lt;&lt; <span class="hljs-built_in">sizeof</span>(<span class="hljs-type">int</span>*) &lt;&lt; <span class="hljs-string">&#x27;\n&#x27;</span>;<br>std::cout &lt;&lt; <span class="hljs-string">&quot;sizeof(WithMember)= &quot;</span> &lt;&lt; <span class="hljs-built_in">sizeof</span>(WithMember) &lt;&lt; <span class="hljs-string">&#x27;\n&#x27;</span>;<br>std::cout &lt;&lt; <span class="hljs-string">&quot;sizeof(WithBase)  = &quot;</span> &lt;&lt; <span class="hljs-built_in">sizeof</span>(WithBase) &lt;&lt; <span class="hljs-string">&#x27;\n&#x27;</span>;<br></code></pre></td></tr></table></figure>
+<p>64 位 MSVC 上典型输出：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">sizeof(int*)       = 8<br>sizeof(WithMember) = 16<br>sizeof(WithBase)   = 8<br></code></pre></td></tr></table></figure>
+<p><code>WithMember</code> 里明明只有一个指针「有用」，对象却是 16 字节：<code>Empty</code> 占 1 字节，后面为了对齐 <code>int*</code>，往往还要填充 7 字节，再加上指针本身的 8 字节。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs text">WithMember 布局（示意）：<br>┌──────────┬─────────────────────┬──────────┐<br>│ Empty    │ padding（对齐 int*）  │  int*    │<br>│  1 字节   │      7 字节           │  8 字节   │<br>└──────────┴─────────────────────┴──────────┘<br>                              合计 ≈ 16 字节<br><br>WithBase 布局（示意）：<br>┌──────────┐<br>│  int*    │   Empty 作为基类「叠」进来，不单独占一块槽位<br>│  8 字节   │<br>└──────────┘<br></code></pre></td></tr></table></figure>
+<p><code>WithBase</code> 只有 8 字节——和单独一个 <code>int*</code> 一样大。Empty 并没有消失，Empty 的逻辑仍可通过基类子对象访问；只是编译器做了<strong>空基类优化（EBO, Empty Base Class Optimization）</strong>：当基类是空类时，允许不为该基类子对象单独分配存储。</p>
+<h2 id="EBO-是什么？">EBO 是什么？</h2>
+<p>用一句话概括：</p>
+<blockquote>
+<p><strong>EBO</strong>：若某个基类是空类，派生类可以不为这个基类子对象单独占内存；但若把同样的空类当作<strong>成员</strong>放进去，通常至少占 1 字节并可能带来对齐填充。</p>
+</blockquote>
+<p>EBO 并不会让 <code>sizeof(Empty)</code> 变成 0。<code>Empty</code> 作为独立的完整对象时仍然至少占 1 字节；只有当它成为基类子对象时，编译器才可以让它不再占用额外存储。MSVC、GCC 和 Clang 都会在满足对象模型约束时应用这种优化。</p>
+<p>标准库实现也会利用 EBO 或类似的布局技术压缩无状态删除器，因此在常见实现中，<code>unique_ptr&lt;int&gt;</code> 通常和一个裸指针一样大。不过，这只是常见实现结果，C++ 标准并不保证 <code>sizeof(unique_ptr&lt;T&gt;) == sizeof(T*)</code>。</p>
+<p>下一节我们把这个问题放到更具体的场景里：<strong>指针 + 删除器</strong> 如何打包，以及 EBO 如何帮空删除器「省」下那一字节和对齐开销。</p>
+<h1>EBO与指针删除器</h1>
+<p>上一节用 <code>WithMember</code> / <code>WithBase</code> 说明了 EBO 的通用原理。这一节把它落到更贴近标准库的场景：<strong>管理指针时，如何把「句柄 + 删除器」打包进一个对象，又不让空删除器白占内存。</strong></p>
+<h2 id="为什么需要「指针-删除器」？">为什么需要「指针 + 删除器」？</h2>
+<p>堆上的指针常用 <code>delete</code> 释放，但资源并不总是 <code>new</code> 出来的：</p>
+<table>
+<thead>
+<tr>
+<th>资源</th>
+<th>释放方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>new T</code></td>
+<td><code>delete</code></td>
+</tr>
+<tr>
+<td><code>fopen</code> 得到的 <code>FILE*</code></td>
+<td><code>fclose</code></td>
+</tr>
+<tr>
+<td><code>malloc</code> 得到的内存</td>
+<td><code>free</code></td>
+</tr>
+</tbody>
+</table>
+<p>因此我们需要一个<strong>删除器（deleter）</strong>：在对象销毁时，按约定的方式释放指针。标准库里的 <code>std::unique_ptr&lt;T, Deleter&gt;</code> 就是这个模型——除了保存指针，还要保存「怎么释放」的逻辑。</p>
+<h2 id="朴素打包：两个成员">朴素打包：两个成员</h2>
+<p>最直白的实现是<strong>组合</strong>：删除器和指针各作为一个成员。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">class</span> <span class="hljs-title class_">D</span>&gt;<br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">Naive</span> &#123;<br>    D deleter;<br>    <span class="hljs-type">int</span>* ptr = <span class="hljs-literal">nullptr</span>;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>这和上一节的 <code>WithMember</code> 是同一类问题：当 <code>D</code> 是空类（例如默认的 <code>delete</code> 逻辑）时，<code>deleter</code> 成员仍会占至少 1 字节，并因对齐把对象撑大。</p>
+<p>Demo 里的 <code>EmptyDeleter</code> 就是这种空删除器——只有 <code>operator()</code>，没有数据成员，语义上等价于标准库的 <code>std::default_delete&lt;int&gt;</code>：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">struct</span> <span class="hljs-title class_">EmptyDeleter</span> &#123;<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">operator</span><span class="hljs-params">()</span><span class="hljs-params">(<span class="hljs-type">int</span>* p)</span> <span class="hljs-type">const</span> </span>&#123; <span class="hljs-keyword">delete</span> p; &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<h2 id="用-EBO-打包：空删除器时私有继承">用 EBO 打包：空删除器时私有继承</h2>
+<p>上一节的 <code>WithBase : Empty</code> 在这里的对应写法是：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">class</span> <span class="hljs-title class_">D</span>&gt;<br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">WithEbo</span> : <span class="hljs-keyword">private</span> D &#123;<br>    <span class="hljs-type">int</span>* ptr = <span class="hljs-literal">nullptr</span>;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<ul>
+<li><strong><code>private D</code></strong>：把删除器当作<strong>空基类</strong>继承，而不是成员——空删除器时可触发 EBO。</li>
+<li><strong><code>ptr</code></strong>：唯一的数据成员，和裸指针一样占 8 字节（64 位）。</li>
+<li>删除器并未消失：对象里仍有 <code>D</code> 的子对象，需要时可通过基类访问并调用 <code>operator()</code>。</li>
+</ul>
+<p>下面用 <code>sizeof</code> 对比朴素组合与 EBO 继承，并对照标准库的 <code>unique_ptr</code>：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;iostream&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;memory&gt;</span></span><br><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">EmptyDeleter</span> &#123;<br>	<span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">operator</span><span class="hljs-params">()</span><span class="hljs-params">(<span class="hljs-type">int</span>* p)</span> <span class="hljs-type">const</span> </span>&#123; <span class="hljs-keyword">delete</span> p; &#125;<br>&#125;;<br><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">FatDeleter</span> &#123;<br>	<span class="hljs-type">int</span> id = <span class="hljs-number">42</span>;<br>	<span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">operator</span><span class="hljs-params">()</span><span class="hljs-params">(<span class="hljs-type">int</span>* p)</span> <span class="hljs-type">const</span> </span>&#123; <span class="hljs-keyword">delete</span> p; &#125;<br>&#125;;<br><br><span class="hljs-comment">// 朴素：两个成员</span><br><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">class</span> <span class="hljs-title class_">D</span>&gt;<br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">Naive</span> &#123;<br>	D deleter;<br>	<span class="hljs-type">int</span>* ptr = <span class="hljs-literal">nullptr</span>;<br>&#125;;<br><br><span class="hljs-comment">// EBO：空 deleter 时继承</span><br><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">class</span> <span class="hljs-title class_">D</span>&gt;<br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">WithEbo</span> : <span class="hljs-keyword">private</span> D &#123;<br>	<span class="hljs-type">int</span>* ptr = <span class="hljs-literal">nullptr</span>;<br>&#125;;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>	std::cout &lt;&lt; <span class="hljs-string">&quot;int*           : &quot;</span> &lt;&lt; <span class="hljs-built_in">sizeof</span>(<span class="hljs-type">int</span>*) &lt;&lt; <span class="hljs-string">&#x27;\n&#x27;</span>;<br>	std::cout &lt;&lt; <span class="hljs-string">&quot;unique_ptr&lt;int&gt;: &quot;</span> &lt;&lt; <span class="hljs-built_in">sizeof</span>(std::unique_ptr&lt;<span class="hljs-type">int</span>&gt;) &lt;&lt; <span class="hljs-string">&#x27;\n&#x27;</span>;<br>	std::cout &lt;&lt; <span class="hljs-string">&quot;Naive&lt;EmptyDeleter&gt;: &quot;</span> &lt;&lt; <span class="hljs-built_in">sizeof</span>(Naive&lt;EmptyDeleter&gt;) &lt;&lt; <span class="hljs-string">&#x27;\n&#x27;</span>;<br>	std::cout &lt;&lt; <span class="hljs-string">&quot;WithEbo&lt;EmptyDeleter&gt;: &quot;</span> &lt;&lt; <span class="hljs-built_in">sizeof</span>(WithEbo&lt;EmptyDeleter&gt;) &lt;&lt; <span class="hljs-string">&#x27;\n&#x27;</span>;<br>	std::cout &lt;&lt; <span class="hljs-string">&quot;Naive&lt;FatDeleter&gt;: &quot;</span> &lt;&lt; <span class="hljs-built_in">sizeof</span>(Naive&lt;FatDeleter&gt;) &lt;&lt; <span class="hljs-string">&#x27;\n&#x27;</span>;<br>	std::cout &lt;&lt; <span class="hljs-string">&quot;unique_ptr&lt;int,FatDeleter&gt;: &quot;</span><br>		&lt;&lt; <span class="hljs-built_in">sizeof</span>(std::unique_ptr&lt;<span class="hljs-type">int</span>, FatDeleter&gt;) &lt;&lt; <span class="hljs-string">&#x27;\n&#x27;</span>;<br>	std::cout &lt;&lt; <span class="hljs-string">&quot;WithEbo&lt;FatDeleter&gt;: &quot;</span> &lt;&lt; <span class="hljs-built_in">sizeof</span>(WithEbo&lt;FatDeleter&gt;) &lt;&lt; <span class="hljs-string">&#x27;\n&#x27;</span>;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+<h2 id="如何读这张-sizeof-表">如何读这张 sizeof 表</h2>
+<p>64 位 MSVC 上典型输出：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs text">int*           : 8<br>unique_ptr&lt;int&gt;: 8<br>Naive&lt;EmptyDeleter&gt;: 16<br>WithEbo&lt;EmptyDeleter&gt;: 8<br>Naive&lt;FatDeleter&gt;: 16<br>unique_ptr&lt;int,FatDeleter&gt;: 16<br>WithEbo&lt;FatDeleter&gt;: 16<br></code></pre></td></tr></table></figure>
+<p>逐行看：</p>
+<table>
+<thead>
+<tr>
+<th>测量对象</th>
+<th>大小</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>int*</code></td>
+<td>8</td>
+<td>基准：裸指针</td>
+</tr>
+<tr>
+<td><code>unique_ptr&lt;int&gt;</code></td>
+<td>8</td>
+<td>标准库对默认空删除器做了 EBO，和裸指针一样大</td>
+</tr>
+<tr>
+<td><code>Naive&lt;EmptyDeleter&gt;</code></td>
+<td>16</td>
+<td>空删除器当<strong>成员</strong>，1 字节 + 对齐填充 + 指针 → 浪费</td>
+</tr>
+<tr>
+<td><code>WithEbo&lt;EmptyDeleter&gt;</code></td>
+<td>8</td>
+<td>空删除器当<strong>基类</strong>，EBO 生效，只剩指针的存储</td>
+</tr>
+<tr>
+<td><code>Naive&lt;FatDeleter&gt;</code> / <code>WithEbo&lt;FatDeleter&gt;</code> / <code>unique_ptr&lt;int, FatDeleter&gt;</code></td>
+<td>16</td>
+<td><code>FatDeleter</code> 有 <code>int id</code>，<strong>不是空类</strong>，EBO 帮不上忙</td>
+</tr>
+</tbody>
+</table>
+<p>三句话收束本节：</p>
+<ol>
+<li><strong>空删除器 + 组合</strong> → 对象往往比裸指针大一倍（本 Demo 里 16 vs 8）。</li>
+<li><strong>空删除器 + 私有继承</strong> → 对象可以压成和裸指针一样大；<code>unique_ptr&lt;int&gt;</code> 走的就是这条路。</li>
+<li><strong>有状态的删除器</strong> → 无论组合还是继承，都要为 deleter 的状态留空间，大小不会变成 8。</li>
+</ol>
+<p><code>WithEbo</code> 只是教学用的最小模型。MSVC STL 里，<code>unique_ptr</code> 通过 <code>_Compressed_pair&lt;deleter, pointer&gt;</code> 把「是否 EBO」的判断封装起来——下一节看它在标准库里的落地方式。</p>
+<h1>EBO在STL中的应用</h1>
+<p><code>unique_ptr</code> 内部除了指针，还要保存 deleter（默认 <code>delete</code>）。朴素实现像两个成员；但常见标准库实现里 <code>sizeof(unique_ptr&lt;int&gt;)</code> 往往等于 <code>sizeof(int*)</code>。</p>
+<blockquote>
+<p>本节展示的是某一版本 MSVC STL 的实现思路。以下划线和大写字母开头的名称属于实现保留标识符，具体代码会随工具集版本变化，不应在业务代码中直接依赖。</p>
+</blockquote>
+<h2 id="核心代码">核心代码</h2>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">class</span> <span class="hljs-title class_">_Ty1</span>, <span class="hljs-keyword">class</span> <span class="hljs-title class_">_Ty2</span>, <span class="hljs-type">bool</span> = is_empty_v&lt;_Ty1&gt; &amp;&amp; !is_final_v&lt;_Ty1&gt;&gt;<br><span class="hljs-keyword">class</span> _Compressed_pair <span class="hljs-keyword">final</span> : <span class="hljs-keyword">private</span> _Ty1 &#123; <span class="hljs-comment">// store a pair of values, deriving from empty first</span><br><span class="hljs-keyword">public</span>:<br>    _Ty2 _Myval2;<br><br>    <span class="hljs-keyword">using</span> _Mybase = _Ty1; <span class="hljs-comment">// for visualization</span><br>&#125;;<br><br><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">class</span> <span class="hljs-title class_">_Ty1</span>, <span class="hljs-keyword">class</span> <span class="hljs-title class_">_Ty2</span>&gt;<br><span class="hljs-keyword">class</span> <span class="hljs-title class_">_Compressed_pair</span>&lt;_Ty1, _Ty2, <span class="hljs-literal">false</span>&gt; <span class="hljs-keyword">final</span> &#123; <span class="hljs-comment">// store a pair of values, not deriving from first</span><br><span class="hljs-keyword">public</span>:<br>    _Ty1 _Myval1;<br>    _Ty2 _Myval2;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>当可以进行EBO优化的时候，我们将 _Ty1 作为基类。当不能进行EBO优化的时候，_Compressed_pair 包含两个成员。这里使用偏特化的方式进行匹配。</p>
+<p>匹配的条件是：1. _Ty1 是空类，如果不是空类，没必要进行EBO优化；2. _Ty1 不是final类，因为final类不能被继承，自然也不能作为基类进行EBO的优化。</p>
+<h2 id="统一的访问接口">统一的访问接口</h2>
+<p>两种特化下，<code>_Ty1</code> 的存储方式不同：EBO 版通过<strong>私有继承</strong>存第一个元素，非 EBO 版用<strong>成员</strong> <code>_Myval1</code>。如果上层代码（如 <code>unique_ptr</code>、<code>vector</code>）直接访问 <code>_Myval1</code> 或 <code>static_cast&lt;_Ty1&amp;&gt;(*this)</code>，就要在每一处写 <code>#if EBO</code> 或依赖偏特化细节——既繁琐，也容易出错。</p>
+<p><code>_Compressed_pair</code> 用 <code>_Get_first()</code> 把差异收进内部，对外只暴露一个名字：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// EBO 特化：_Ty1 是基类</span><br><span class="hljs-keyword">constexpr</span> _Ty1&amp; _Get_first() <span class="hljs-keyword">noexcept</span> &#123;<br>    <span class="hljs-keyword">return</span> *<span class="hljs-keyword">this</span>;<br>&#125;<br><span class="hljs-keyword">constexpr</span> <span class="hljs-type">const</span> _Ty1&amp; _Get_first() <span class="hljs-type">const</span> <span class="hljs-keyword">noexcept</span> &#123;<br>    <span class="hljs-keyword">return</span> *<span class="hljs-keyword">this</span>;<br>&#125;<br><br><span class="hljs-comment">// 非 EBO 特化：_Ty1 是成员</span><br><span class="hljs-keyword">constexpr</span> _Ty1&amp; _Get_first() <span class="hljs-keyword">noexcept</span> &#123;<br>    <span class="hljs-keyword">return</span> _Myval1;<br>&#125;<br><span class="hljs-keyword">constexpr</span> <span class="hljs-type">const</span> _Ty1&amp; _Get_first() <span class="hljs-type">const</span> <span class="hljs-keyword">noexcept</span> &#123;<br>    <span class="hljs-keyword">return</span> _Myval1;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>无论走哪条偏特化，调用方都可以统一写 <code>_Mypair._Get_first()</code>，不必关心内部是继承还是成员。</p>
+<h3 id="为什么有两个重载？">为什么有两个重载？</h3>
+<p>这是 C++ 里常见的 <strong>const 成员函数重载</strong>，分别服务「可修改」和「只读」两种场景：</p>
+<table>
+<thead>
+<tr>
+<th>重载</th>
+<th>调用条件</th>
+<th>返回值</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>_Get_first()</code></td>
+<td>非 const 对象</td>
+<td><code>_Ty1&amp;</code></td>
+<td>修改 deleter / allocator 等</td>
+</tr>
+<tr>
+<td><code>_Get_first() const</code></td>
+<td>const 对象</td>
+<td><code>const _Ty1&amp;</code></td>
+<td>只读访问，不能修改</td>
+</tr>
+</tbody>
+</table>
+<p><code>vector</code> 取 allocator 的写法就是典型例子：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs cpp">_Alty&amp; _Getal() <span class="hljs-keyword">noexcept</span> &#123;<br>    <span class="hljs-keyword">return</span> _Mypair._Get_first();          <span class="hljs-comment">// 非 const → 可写</span><br>&#125;<br><br><span class="hljs-type">const</span> _Alty&amp; _Getal() <span class="hljs-type">const</span> <span class="hljs-keyword">noexcept</span> &#123;<br>    <span class="hljs-keyword">return</span> _Mypair._Get_first();          <span class="hljs-comment">// const → 只读</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<p>若只有非 const 版本，在 <code>const vector&amp;</code> 上就无法合法拿到 allocator；若只有 const 版本，非 const 对象又无法修改 allocator。两个重载配合，保证 <strong>const 正确性</strong>。</p>
+<h2 id="构造-Compressed-pair">构造 _Compressed_pair</h2>
+<p>两个版本的构造函数如下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// EBO 版本</span><br>    <span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">class</span>... _Other2&gt;<br>    <span class="hljs-keyword">constexpr</span> <span class="hljs-keyword">explicit</span> _Compressed_pair(_Zero_then_variadic_args_t, _Other2&amp;&amp;... _Val2) <span class="hljs-built_in">noexcept</span>(<br>        conjunction_v&lt;is_nothrow_default_constructible&lt;_Ty1&gt;, is_nothrow_constructible&lt;_Ty2, _Other<span class="hljs-number">2.</span>..&gt;&gt;)<br>        : _Ty1(), _Myval2(_STD forward&lt;_Other2&gt;(_Val2)...) &#123;&#125;<br><br>    <span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">class</span> <span class="hljs-title class_">_Other1</span>, <span class="hljs-keyword">class</span>... _Other2&gt;<br>    <span class="hljs-keyword">constexpr</span> _Compressed_pair(_One_then_variadic_args_t, _Other1&amp;&amp; _Val1, _Other2&amp;&amp;... _Val2) <span class="hljs-built_in">noexcept</span>(<br>        conjunction_v&lt;is_nothrow_constructible&lt;_Ty1, _Other1&gt;, is_nothrow_constructible&lt;_Ty2, _Other<span class="hljs-number">2.</span>..&gt;&gt;)<br>        : _Ty1(_STD forward&lt;_Other1&gt;(_Val1)), _Myval2(_STD forward&lt;_Other2&gt;(_Val2)...) &#123;&#125;<br><br><span class="hljs-comment">//非EBO</span><br>    <span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">class</span>... _Other2&gt;<br>    <span class="hljs-keyword">constexpr</span> <span class="hljs-keyword">explicit</span> _Compressed_pair(_Zero_then_variadic_args_t, _Other2&amp;&amp;... _Val2) <span class="hljs-built_in">noexcept</span>(<br>        conjunction_v&lt;is_nothrow_default_constructible&lt;_Ty1&gt;, is_nothrow_constructible&lt;_Ty2, _Other<span class="hljs-number">2.</span>..&gt;&gt;)<br>        : _Myval1(), _Myval2(_STD forward&lt;_Other2&gt;(_Val2)...) &#123;&#125;<br><br>    <span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">class</span> <span class="hljs-title class_">_Other1</span>, <span class="hljs-keyword">class</span>... _Other2&gt;<br>    <span class="hljs-keyword">constexpr</span> _Compressed_pair(_One_then_variadic_args_t, _Other1&amp;&amp; _Val1, _Other2&amp;&amp;... _Val2) <span class="hljs-built_in">noexcept</span>(<br>        conjunction_v&lt;is_nothrow_constructible&lt;_Ty1, _Other1&gt;, is_nothrow_constructible&lt;_Ty2, _Other<span class="hljs-number">2.</span>..&gt;&gt;)<br>        : _Myval1(_STD forward&lt;_Other1&gt;(_Val1)), _Myval2(_STD forward&lt;_Other2&gt;(_Val2)...) &#123;&#125;<br></code></pre></td></tr></table></figure>
+<h2 id="构造-tag：-Zero-then-与-One-then">构造 tag：<code>_Zero_then_...</code> 与 <code>_One_then_...</code></h2>
+<p>上一节的两个构造函数，第一个参数都是 <strong>tag</strong>——空的标记类型，本身不存数据：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">struct</span> <span class="hljs-title class_">_Zero_then_variadic_args_t</span> &#123;<br>    <span class="hljs-keyword">explicit</span> _Zero_then_variadic_args_t() = <span class="hljs-keyword">default</span>;<br>&#125;; <span class="hljs-comment">// 第一个元素默认构造，其余参数给第二个</span><br><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">_One_then_variadic_args_t</span> &#123;<br>    <span class="hljs-keyword">explicit</span> _One_then_variadic_args_t() = <span class="hljs-keyword">default</span>;<br>&#125;; <span class="hljs-comment">// 第一个参数给第一个元素，其余给第二个</span><br></code></pre></td></tr></table></figure>
+<p>名字可以直接读：<strong>Zero / One</strong> 表示给第一个元素几个参数，<strong>then variadic args</strong> 表示剩余参数交给第二个元素。</p>
+<h3 id="两种构造模式">两种构造模式</h3>
+<table>
+<thead>
+<tr>
+<th>tag</th>
+<th>第一个 <code>_Ty1</code></th>
+<th>第二个 <code>_Ty2</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>_Zero_then_variadic_args_t</code></td>
+<td>默认构造（0 个参数）</td>
+<td>后面所有参数</td>
+</tr>
+<tr>
+<td><code>_One_then_variadic_args_t</code></td>
+<td>第 1 个参数</td>
+<td>后面剩余参数</td>
+</tr>
+</tbody>
+</table>
+<p>调用方必须显式传入 tag，告诉编译器选哪种模式：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// unique_ptr 默认构造：deleter 默认构造，pointer 默认构造</span><br>_Mypair(_Zero_then_variadic_args_t&#123;&#125;);<br><br><span class="hljs-comment">// 只传指针：deleter 默认构造，pointer 用 ptr 构造</span><br>_Mypair(_Zero_then_variadic_args_t&#123;&#125;, ptr);<br><br><span class="hljs-comment">// 同时传 deleter 和 pointer</span><br>_Mypair(_One_then_variadic_args_t&#123;&#125;, deleter, ptr);<br><span class="hljs-comment">//       ↑ tag                         ↑ _Ty1   ↑ _Ty2</span><br></code></pre></td></tr></table></figure>
+<h3 id="为什么需要-tag？">为什么需要 tag？</h3>
+<p>这不是多余设计。若去掉 tag，只靠参数个数来区分两种意图，<strong>同样数量的实参可以对应两种合法但语义不同的分配方式</strong>，这个时候，编译器无法区分是哪种分配，例如下面的情况：</p>
+<p><strong>1 个实参就会歧义：</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs cpp">_Compressed_pair(some_deleter);  <span class="hljs-comment">// 没有 tag 时，两种理解都说得通</span><br></code></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr>
+<th>理解</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td><code>_Ty1</code> 默认构造，<code>_Ty2</code> 用 <code>some_deleter</code> 构造</td>
+</tr>
+<tr>
+<td>B</td>
+<td><code>_Ty1</code> 用 <code>some_deleter</code> 构造，<code>_Ty2</code> 默认构造</td>
+</tr>
+</tbody>
+</table>
+<p>没有 tag，很难表达「在这里切一刀、在那里再切一刀」。</p>
+<h3 id="运行时开销">运行时开销</h3>
+<p>tag 是空类，传 <code>_Zero_then_variadic_args_t&#123;&#125;</code> 的主要作用是在 <strong>编译期</strong> 参与重载决议；它不会成为 <code>_Compressed_pair</code> 的数据成员。优化后通常没有可观察的额外运行时开销，但具体调用约定与生成代码仍由实现决定。这是 C++ 标准库常用的 <strong>tag dispatch（标签分发）</strong> 手法。</p>
+<h2 id="noexcept">noexcept</h2>
+<p>上一节两个构造函数末尾都有 <code>noexcept(...)</code>。它表示：括号中的常量表达式为 <code>true</code> 时，函数是 <code>noexcept</code> 的；为 <code>false</code> 时，函数可能抛出异常。</p>
+<h3 id="代码在检查什么？">代码在检查什么？</h3>
+<p>以 <code>_One_then_variadic_args_t</code> 版本为例：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">constexpr</span> _Compressed_pair(_One_then_variadic_args_t, _Other1&amp;&amp; _Val1, _Other2&amp;&amp;... _Val2) <span class="hljs-built_in">noexcept</span>(<br>    conjunction_v&lt;is_nothrow_constructible&lt;_Ty1, _Other1&gt;,<br>                  is_nothrow_constructible&lt;_Ty2, _Other<span class="hljs-number">2.</span>..&gt;&gt;)<br>    : _Myval1(_STD forward&lt;_Other1&gt;(_Val1)), _Myval2(_STD forward&lt;_Other2&gt;(_Val2)...) &#123;&#125;<br></code></pre></td></tr></table></figure>
+<p>成员初始化与类型特征一一对应：</p>
+<table>
+<thead>
+<tr>
+<th>类型特征</th>
+<th>对应的初始化代码</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>is_nothrow_constructible&lt;_Ty1, _Other1&gt;</code></td>
+<td><code>_Myval1(forward(_Val1))</code></td>
+<td>用 <code>_Val1</code> 构造第一个元素，是否不抛异常</td>
+</tr>
+<tr>
+<td><code>is_nothrow_constructible&lt;_Ty2, _Other2...&gt;</code></td>
+<td><code>_Myval2(forward(_Val2)...)</code></td>
+<td>用剩余参数构造第二个元素，是否不抛异常</td>
+</tr>
+</tbody>
+</table>
+<p><code>_Zero_then_...</code> 版本里，第一个对应 <code>is_nothrow_default_constructible&lt;_Ty1&gt;</code> ↔ <code>_Myval1()</code>（默认构造）。</p>
+<p><code>conjunction_v&lt;A, B&gt;</code> 就是逻辑与：<strong>两个子对象构造都 nothrow，整个构造函数才标 <code>noexcept</code>。</strong></p>
+<p><code>forward</code> 会根据实参是左值还是右值，选中拷贝构造或移动构造；trait 检查的正是 <strong>会被选中的那个构造函数</strong> 是否 nothrow。</p>
+<h3 id="noexcept-到底是什么意思？"><code>noexcept</code> 到底是什么意思？</h3>
+<p>可以把它理解成对编译器的承诺：</p>
+<blockquote>
+<p><strong>「我不会用 <code>throw</code> 把 C++ 异常传出这个函数；若真的抛了，别走 <code>catch</code>，直接 <code>std::terminate()</code>。」</strong></p>
+</blockquote>
+<p>它 <strong>只管 C++ 异常</strong>，不管其他「出错方式」：</p>
+<table>
+<thead>
+<tr>
+<th>管不管</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>管</strong></td>
+<td><code>throw std::bad_alloc()</code>、<code>throw std::runtime_error(...)</code></td>
+</tr>
+<tr>
+<td><strong>不管</strong></td>
+<td>空指针解引用、数组越界（UB）、<code>abort()</code>、SIGSEGV（core dump）</td>
+</tr>
+</tbody>
+</table>
+<p>所以：一个标了 <code>noexcept</code> 的函数照样可能因为 UB 而崩溃——<code>noexcept</code> 只约束 <strong>异常传播</strong>，不保证「绝对安全」。</p>
+<h3 id="Compressed-pair-为什么使用条件-noexcept？"><code>_Compressed_pair</code> 为什么使用条件 <code>noexcept</code>？</h3>
+<p><code>_Compressed_pair</code> 的构造函数本身没有额外的业务逻辑，它只是构造内部的两个子对象。因此，它能否保证不抛出异常，取决于 <code>_Ty1</code> 和 <code>_Ty2</code> 的相应构造是否都不抛出异常。</p>
+<p>当两个子对象的构造都满足 <code>is_nothrow_constructible</code> 时，条件表达式为 <code>true</code>，<code>_Compressed_pair</code> 的构造函数就是 <code>noexcept</code> 的；只要其中一个子对象的构造可能抛出异常，条件表达式就为 <code>false</code>，<code>_Compressed_pair</code> 也不再作出不抛异常的保证。</p>
+<p>这里的条件 <code>noexcept</code> 不是运行时判断，也不表示条件为 <code>false</code> 时构造一定会抛出异常。一个可能抛出异常的构造函数，在某次调用中仍然可以正常完成。这个声明表达的只是：<code>_Compressed_pair</code> 能否在编译期承诺“异常不会从本次构造中传播出去”。</p>
+<p>所以，条件 <code>noexcept</code> 的作用只是准确描述 <code>_Compressed_pair</code> 自身的构造语义。无条件写成 <code>noexcept</code> 会在子对象真的抛出异常时触发 <code>std::terminate()</code>；完全不写 <code>noexcept</code>，又会丢失两个子对象都保证不抛时本可提供的信息。至于上层代码是否查询或利用这个信息，是调用方自己的设计，并不是 <code>_Compressed_pair</code> 在这里服务于某个特定组件。</p>
+<h2 id="C-20-中，EBO-的简洁写法">C++20 中，EBO 的简洁写法</h2>
+<p>C++20 起可以用 <code>[[no_unique_address]]</code>。对空类型而言，它允许成员与对象中的其他部分共享地址，从而实现类似 EBO 的压缩，而不必再私有继承：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">struct</span> <span class="hljs-title class_">Empty</span> &#123;&#125;;<br><br><span class="hljs-comment">// C++17 及之前：常靠继承</span><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">WithBase</span> : Empty &#123;<br>    <span class="hljs-type">int</span>* p;<br>&#125;;<br><br><span class="hljs-comment">// C++20：成员 + 属性</span><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">WithMember</span> &#123;<br>    [[no_unique_address]] Empty e;<br>    <span class="hljs-type">int</span>* p;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>64 位平台上，<code>sizeof(WithMember)</code> 往往也是 8——和 <code>WithBase</code> 一样，空成员不会单独占 1 字节 + 对齐填充。</p>
+<p><strong>和 <code>_Compressed_pair</code> 的对比：</strong></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><code>_Compressed_pair</code></th>
+<th><code>[[no_unique_address]]</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>写法</td>
+<td>偏特化 + tag 构造，较复杂</td>
+<td>成员上加属性，直观</td>
+</tr>
+<tr>
+<td>空类要求</td>
+<td>继承时不能是 <code>final</code></td>
+<td>空成员无此限制，但仍受同类型子对象地址等对象模型规则约束</td>
+</tr>
+</tbody>
+</table>
+<p>一句话：<strong><code>[[no_unique_address]]</code> 让空类型可以继续以成员的形式书写，同时允许编译器省去它的独立存储；<code>_Compressed_pair</code> 则是传统标准库实现中通过继承完成空类型压缩的经典封装。</strong></p>
+<h2 id="附录：对象地址规则与两类布局优化">附录：对象地址规则与两类布局优化</h2>
+<p>正文使用了“独立对象”这种直观说法。更严格地说，在排除标准规定的特殊情况后，可以先记住下面这个结论：</p>
+<blockquote>
+<p><strong>生命周期重叠的、同类型的不同完整对象，必须具有不同的地址。</strong></p>
+</blockquote>
+<p>这句话包含三个需要分别理解的概念：</p>
+<ol>
+<li>什么是“生命周期重叠”；</li>
+<li>为什么强调“同类型”；</li>
+<li>什么是“完整对象”。</li>
+</ol>
+<p>理解这三个概念后，我们再来看 EBO 和 <code>[[no_unique_address]]</code> 为什么允许子对象共享存储，以及这种共享仍然受到哪些限制。</p>
+<h3 id="什么是“生命周期重叠”？">什么是“生命周期重叠”？</h3>
+<p>两个对象的生命周期重叠，表示它们在某一段时间内同时存在。此时程序必须能够区分那些不允许重叠存储的对象。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs cpp">Empty a;<br>Empty b;<br><span class="hljs-comment">// 执行到这里时，a 和 b 都活着，生命周期重叠。</span><br><span class="hljs-comment">// 它们是两个同类型的完整对象，因此地址不同。</span><br></code></pre></td></tr></table></figure>
+<p>如果前一个对象已经销毁，后一个对象可以复用同一块存储；地址相同并不代表它们是同一个对象：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;memory&gt;</span></span><br><br><span class="hljs-built_in">alignas</span>(Empty) <span class="hljs-type">unsigned</span> <span class="hljs-type">char</span> storage[<span class="hljs-built_in">sizeof</span>(Empty)];<br><br>Empty* first = std::<span class="hljs-built_in">construct_at</span>(<br>    <span class="hljs-built_in">reinterpret_cast</span>&lt;Empty*&gt;(storage));<br>std::<span class="hljs-built_in">destroy_at</span>(first); <span class="hljs-comment">// first 的生命周期结束</span><br><br>Empty* second = std::<span class="hljs-built_in">construct_at</span>(<br>    <span class="hljs-built_in">reinterpret_cast</span>&lt;Empty*&gt;(storage)); <span class="hljs-comment">// 复用同一地址</span><br>std::<span class="hljs-built_in">destroy_at</span>(second);<br></code></pre></td></tr></table></figure>
+<p>这里 <code>first</code> 和 <code>second</code> 指向的两个 <code>Empty</code> 对象并不同时存在，所以复用地址没有违反对象身份规则。</p>
+<h3 id="为什么强调“同类型”？">为什么强调“同类型”？</h3>
+<p>不同类型的对象有时可以拥有相同地址。最常见的例子就是派生类对象与其基类子对象：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">struct</span> <span class="hljs-title class_">Empty</span> &#123;&#125;;<br><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">Derived</span> : Empty &#123;<br>    <span class="hljs-type">int</span> value;<br>&#125;;<br><br>Derived d;<br>Empty* base = &amp;d;<br><br><span class="hljs-comment">// 在常见实现中，d 与它的 Empty 基类子对象地址相同。</span><br></code></pre></td></tr></table></figure>
+<p>因此，“不同类型的对象必须拥有不同地址”并不成立。正文真正需要表达的是：生命周期同时存在的普通完整对象，以及数组中的不同元素，必须保持可区分的对象身份。</p>
+<h3 id="什么是“完整对象”？">什么是“完整对象”？</h3>
+<p>**完整对象（complete object）**是指不是任何其他对象的子对象的对象。换句话说，它不是基类子对象、成员子对象或数组元素。可以先把它理解成“最外层、独立创建出来的对象”：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs cpp">Empty a;        <span class="hljs-comment">// a 是完整对象</span><br>Empty array[<span class="hljs-number">2</span>]; <span class="hljs-comment">// array 是完整对象</span><br>                <span class="hljs-comment">// 两个 Empty 元素是 array 的子对象，不是完整对象</span><br><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">Derived</span> : Empty &#123;<br>    <span class="hljs-type">int</span> value;<br>&#125;;<br><br>Derived d;      <span class="hljs-comment">// d 是完整对象</span><br>                <span class="hljs-comment">// d 内部的 Empty 是基类子对象，不是完整对象</span><br>                <span class="hljs-comment">// d.value 是成员子对象，也不是完整对象</span><br></code></pre></td></tr></table></figure>
+<p>这里必须区分“完整对象”和“子对象”：完整对象通常需要保持独立的对象身份；基类和成员则存在于另一个对象内部，可能适用允许存储重叠的特殊规则。数组元素虽然也是子对象，但仍必须按数组布局规则依次排列，不能因为类型为空就全部放到同一地址。EBO 和 <code>[[no_unique_address]]</code> 优化的是特定的可能重叠子对象，而不是把两个普通的完整对象或数组元素压到同一地址。</p>
+<h3 id="EBO-为什么是例外？">EBO 为什么是例外？</h3>
+<p>基类子对象不是完整对象。C++ 将基类子对象归入 <strong>potentially-overlapping subobject（可能重叠的子对象）</strong>，因此空基类可以不占用独立存储，并与派生类的其他部分共享地址：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">struct</span> <span class="hljs-title class_">Empty</span> &#123;&#125;;<br><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">WithEbo</span> : Empty &#123;<br>    <span class="hljs-type">int</span> value;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>这里 <code>Empty</code> 子对象仍然存在，只是它可能具有零大小并与 <code>value</code> 所在的存储重叠。编译器仍需遵守对象身份规则；例如，同一完整对象中的多个相同类型空基类子对象不能被随意压到同一地址。</p>
+<h3 id="no-unique-address-为什么也是例外？"><code>[[no_unique_address]]</code> 为什么也是例外？</h3>
+<p>普通成员默认需要自己的存储。C++20 的 <code>[[no_unique_address]]</code> 会把被标记的非静态数据成员也归入 potentially-overlapping subobject。对于本文讨论的空类型，这意味着空成员可以与对象中的其他部分共享地址：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">struct</span> <span class="hljs-title class_">Empty</span> &#123;&#125;;<br><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">Compressed</span> &#123;<br>    [[no_unique_address]] Empty policy;<br>    <span class="hljs-type">int</span> value;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p><code>policy</code> 仍然是一个真实存在的成员子对象，只是不一定占用独立字节。该属性也不意味着编译器可以无条件合并任何成员：同类型子对象的地址约束、对齐要求和其他对象模型规则仍然有效，而且最终布局仍与具体实现有关。</p>
+<h2 id="参考资料">参考资料</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://eel.is/c++draft/intro.object">C++ 标准草案：对象模型与 potentially-overlapping subobject</a></li>
+<li><a target="_blank" rel="noopener" href="https://eel.is/c++draft/unique.ptr.single.ctor">C++ 标准草案：<code>std::unique_ptr</code> 构造函数</a></li>
+<li><a target="_blank" rel="noopener" href="https://eel.is/c++draft/dcl.attr.nouniqueaddr">C++ 标准草案：<code>[[no_unique_address]]</code></a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/microsoft/STL">Microsoft STL 官方源码仓库</a></li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/C/" class="category-chain-item">C++</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/C/STL%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/" class="category-chain-item">STL源码阅读</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/C/" class="print-no-link">#C++</a>
+      
+        <a href="/tags/STL/" class="print-no-link">#STL</a>
+      
+        <a href="/tags/EBO/" class="print-no-link">#EBO</a>
+      
+        <a href="/tags/%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80/" class="print-no-link">#内存布局</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>从 EBO 到 MSVC STL 的 _Compressed_pair</div>
+      <div>https://undefinedreference-code.github.io/2026/07/20/EBO与MSVC-STL的-Compressed-pair/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>John Doe</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年7月20日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/12/29/AI-Agent%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E2%80%94%E2%80%94-%E6%90%AD%E5%BB%BAAI%E6%99%BA%E8%83%BD%E4%BD%93%E7%9A%84%E4%B8%A4%E5%A4%A7%E5%9F%BA%E7%9F%B3%EF%BC%9A%E5%8F%AF%E7%BC%96%E7%A8%8B%E8%B0%83%E7%94%A8%E4%B8%8E%E8%AE%B0%E5%BF%86%E7%AE%A1%E7%90%86%EF%BC%882%EF%BC%89%E2%80%94%E2%80%94-%E8%AE%B0%E5%BF%86%E7%AE%A1%E7%90%86/" title="AI Agent学习笔记 —— 搭建AI智能体的两大基石：可编程调用与记忆管理（2）—— 记忆管理">
+                        <span class="hidden-mobile">AI Agent学习笔记 —— 搭建AI智能体的两大基石：可编程调用与记忆管理（2）—— 记忆管理</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"Fo0QIqpU699rbG2Rl9lW3Vau-MdYXbMMI","appKey":"Fo0QIqpU699rbG2Rl9lW3Vau-MdYXbMMI","path":"window.location.pathname","placeholder":null,"avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

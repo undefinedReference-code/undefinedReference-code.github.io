@@ -1,0 +1,793 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="搭建AI智能体的第一步，是突破“手动输入提示词”的局限——让程序自动与大模型交互，并能记住迭代过程中的关键信息。这就需要掌握两个核心能力：  可编程调用提示词：把人类手动和大模型对话的过程自动化，这是智能体循环（Agent Loop）能持续运行的基础； 记忆管理：精准控制“哪些信息需要保留”（比如API调用结果、对话历史），让智能体能基于上下文做决策，而不是每次都“从零开始”。  实操入门：用Li">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AI Agent学习笔记 —— 搭建AI智能体的两大基石：可编程调用与记忆管理（1）—— 可编程调用">
+<meta property="og:url" content="https://undefinedreference-code.github.io/2025/12/27/%E6%90%AD%E5%BB%BAAI%E6%99%BA%E8%83%BD%E4%BD%93%E7%9A%84%E4%B8%A4%E5%A4%A7%E5%9F%BA%E7%9F%B3%EF%BC%9A%E5%8F%AF%E7%BC%96%E7%A8%8B%E8%B0%83%E7%94%A8%E4%B8%8E%E8%AE%B0%E5%BF%86%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89%E2%80%94%E2%80%94-%E5%8F%AF%E7%BC%96%E7%A8%8B%E8%B0%83%E7%94%A8/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="搭建AI智能体的第一步，是突破“手动输入提示词”的局限——让程序自动与大模型交互，并能记住迭代过程中的关键信息。这就需要掌握两个核心能力：  可编程调用提示词：把人类手动和大模型对话的过程自动化，这是智能体循环（Agent Loop）能持续运行的基础； 记忆管理：精准控制“哪些信息需要保留”（比如API调用结果、对话历史），让智能体能基于上下文做决策，而不是每次都“从零开始”。  实操入门：用Li">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-12-27T22:32:15.000Z">
+<meta property="article:modified_time" content="2026-07-20T14:41:51.360Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="人工智能">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>AI Agent学习笔记 —— 搭建AI智能体的两大基石：可编程调用与记忆管理（1）—— 可编程调用 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/KaTeX/0.16.2/katex.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"undefinedreference-code.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":"Fo0QIqpU699rbG2Rl9lW3Vau-MdYXbMMI","app_key":"z8m7WlbfobcDyEJnhla5kN5Z","server_url":"https://fo0qiqpu.api.lncldglobal.com","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="AI Agent学习笔记 —— 搭建AI智能体的两大基石：可编程调用与记忆管理（1）—— 可编程调用"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-12-27 22:32" pubdate>
+          2025年12月27日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          17 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="leancloud-page-views"></span> 次
+        </span>
+        
+      
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">AI Agent学习笔记 —— 搭建AI智能体的两大基石：可编程调用与记忆管理（1）—— 可编程调用</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>搭建AI智能体的第一步，是突破“手动输入提示词”的局限——让程序自动与大模型交互，并能记住迭代过程中的关键信息。这就需要掌握两个核心能力：</p>
+<ul>
+<li>可编程调用提示词：把人类手动和大模型对话的过程自动化，这是智能体循环（Agent Loop）能持续运行的基础；</li>
+<li>记忆管理：精准控制“哪些信息需要保留”（比如API调用结果、对话历史），让智能体能基于上下文做决策，而不是每次都“从零开始”。</li>
+</ul>
+<h1>实操入门：用LiteLLM调用大模型</h1>
+<p>要实现“可编程调用”，我们不需要直接对接各个厂商的API（比如OpenAI、 Claude），用LiteLLM就能快速搞定——它是一个统一的大模型调用工具，能兼容几乎所有主流模型，用法简洁且统一。下面从最基础的示例开始，一步步拆解核心逻辑。</p>
+<h2 id="基础示例：发送提示词并获取响应">基础示例：发送提示词并获取响应</h2>
+<p>最开始，我们使用本地部署的小模型以节省API key的消耗。</p>
+<p>我们使用<code>ollama pull qwen2.5:14b</code> 拉取模型资产</p>
+<p>先看一段可直接运行的代码，核心作用是“封装大模型调用逻辑”，让我们能通过代码批量、自动化地和大模型交互：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment">#</span><br><span class="hljs-comment"># Set your API key as shown in the Google Colab notebook</span><br><span class="hljs-comment">#</span><br><br><span class="hljs-keyword">from</span> litellm <span class="hljs-keyword">import</span> completion<br><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">List</span>, <span class="hljs-type">Dict</span><br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">generate_response</span>(<span class="hljs-params">messages: <span class="hljs-type">List</span>[<span class="hljs-type">Dict</span>]</span>) -&gt; <span class="hljs-built_in">str</span>:<br>    <span class="hljs-string">&quot;&quot;&quot;Call LLM to get response&quot;&quot;&quot;</span><br>    response = completion(<br>        model=<span class="hljs-string">&quot;ollama/qwen2.5:14b&quot;</span>,<br>        messages=messages,<br>        max_tokens=<span class="hljs-number">1024</span><br>    )<br>    <span class="hljs-keyword">return</span> response.choices[<span class="hljs-number">0</span>].message.content<br><br><br>messages = [<br>    &#123;<span class="hljs-string">&quot;role&quot;</span>: <span class="hljs-string">&quot;system&quot;</span>, <span class="hljs-string">&quot;content&quot;</span>: <span class="hljs-string">&quot;You are an expert software engineer that prefers functional programming.&quot;</span>&#125;,<br>    &#123;<span class="hljs-string">&quot;role&quot;</span>: <span class="hljs-string">&quot;user&quot;</span>, <span class="hljs-string">&quot;content&quot;</span>: <span class="hljs-string">&quot;Write a function to swap the keys and values in a dictionary.&quot;</span>&#125;<br>]<br><br>response = generate_response(messages)<br><span class="hljs-built_in">print</span>(response)<br></code></pre></td></tr></table></figure>
+<p>虽然我们没有配置任何url路径，但是由于我们使用了ollama提供商，litellm会自动寻找本机的ollama服务。</p>
+<h2 id="核心解读：completion函数与ChatML格式">核心解读：completion函数与ChatML格式</h2>
+<p>上面代码的核心是 <code>completion</code>​ 函数和 <code>messages</code> 参数，这是理解“可编程调用”的关键：</p>
+<ul>
+<li><strong>completion函数</strong>：大模型交互的“桥梁”<br>
+它帮我们屏蔽了不同厂商API的差异（比如OpenAI和Anthropic的调用格式不同），只需传入统一参数，就能得到标准化响应。核心输入是“模型名”和“对话上下文”，核心输出是模型生成的文本（藏在 <code>response.choices[0].message.content</code> 里）。</li>
+<li><strong>ChatML格式</strong>：让模型“读懂上下文”<br>
+​<code>messages</code>​ 参数必须是“字典列表”，每个字典包含 <code>role</code>​（角色）和 <code>content</code>（内容）——这是大模型通用的对话格式，目的是让模型明确“谁在说话”，从而准确理解上下文。对于智能体来说，这个格式更是“记忆管理”的基础（能清晰记录历史交互）。</li>
+</ul>
+<h2 id="三个核心角色：系统、用户、助手">三个核心角色：系统、用户、助手</h2>
+<p>ChatML的 <code>role</code> 有三个核心值，各自分工明确，尤其是“系统消息”对智能体至关重要：</p>
+<table>
+<thead>
+<tr>
+<th>角色（role）</th>
+<th>作用说明</th>
+<th>对智能体的意义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>system（系统）</td>
+<td>设定模型的“行为规则”，优先级最高，不参与直接对话。比如“始终用JSON格式回复”“扮演客服，所有问题都建议重启设备”。</td>
+<td>智能体的“隐形指令器”——用系统消息可以直接“定义智能体的行为模式”，无需每次用户输入都重复说明。</td>
+</tr>
+<tr>
+<td>user（用户）</td>
+<td>代表用户的需求，比如问题、指令、任务描述。</td>
+<td>智能体的“任务输入源”——智能体需要根据用户消息拆解任务、规划行动。</td>
+</tr>
+<tr>
+<td>assistant（助手）</td>
+<td>记录模型之前的回复，用于延续对话上下文。比如之前的交互记录，可作为模型的“历史记忆”。</td>
+<td>智能体的“短期记忆”——保存之前的行动结果，让后续决策能基于历史信息，避免重复操作。</td>
+</tr>
+</tbody>
+</table>
+<h1>核心技巧：用系统消息“编程”智能体</h1>
+<p>系统消息是智能体的“核心配置”——它能让模型在整个交互过程中始终遵循固定规则，相当于用自然语言给智能体写“代码”。下面用一个客服场景示例，直观感受它的作用：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs python">messages = [<br>    &#123;<span class="hljs-string">&quot;role&quot;</span>: <span class="hljs-string">&quot;system&quot;</span>, <span class="hljs-string">&quot;content&quot;</span>: <span class="hljs-string">&quot;You are a helpful customer service representative. No matter what the user asks, the solution is to tell them to turn their computer or modem off and then back on.&quot;</span>&#125;,<br>    &#123;<span class="hljs-string">&quot;role&quot;</span>: <span class="hljs-string">&quot;user&quot;</span>, <span class="hljs-string">&quot;content&quot;</span>: <span class="hljs-string">&quot;How do I get my Internet working again.&quot;</span>&#125;<br>]<br><br>response = generate_response(messages)<br><span class="hljs-built_in">print</span>(response)<br></code></pre></td></tr></table></figure>
+<p><strong>关键结论</strong>：系统消息的优先级高于用户消息，能直接“锁定”智能体的行为模式。这是智能体实现“自动化决策”的基础——我们可以通过系统消息，提前定义好智能体的任务边界、行动规则、输出格式。可以发现，设置了system prompt 之后，哪怕你输出我生病了之类的问题，他也会说让你重启电脑。</p>
+<h1>进阶：用JSON传递结构化信息</h1>
+<p>智能体需要处理大量结构化数据（比如API调用结果、任务参数），而大模型能直接解读JSON格式的信息——这意味着我们可以把复杂需求、任务配置封装成JSON，再传给模型，大幅提升交互效率。</p>
+<p>示例：用JSON定义函数需求，让模型生成符合要求的代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">import</span> json<br><br>code_spec = &#123;<br>    <span class="hljs-string">&#x27;name&#x27;</span>: <span class="hljs-string">&#x27;swap_keys_values&#x27;</span>,<br>    <span class="hljs-string">&#x27;description&#x27;</span>: <span class="hljs-string">&#x27;Swaps the keys and values in a given dictionary.&#x27;</span>,<br>    <span class="hljs-string">&#x27;params&#x27;</span>: &#123;<br>        <span class="hljs-string">&#x27;d&#x27;</span>: <span class="hljs-string">&#x27;A dictionary with unique values.&#x27;</span><br>    &#125;,<br>&#125;<br><br>messages = [<br>    &#123;<span class="hljs-string">&quot;role&quot;</span>: <span class="hljs-string">&quot;system&quot;</span>,<br>     <span class="hljs-string">&quot;content&quot;</span>: <span class="hljs-string">&quot;You are an expert software engineer that writes clean functional code. You always document your functions.&quot;</span>&#125;,<br>    &#123;<span class="hljs-string">&quot;role&quot;</span>: <span class="hljs-string">&quot;user&quot;</span>, <span class="hljs-string">&quot;content&quot;</span>: <span class="hljs-string">f&quot;Please implement: <span class="hljs-subst">&#123;json.dumps(code_spec)&#125;</span>&quot;</span>&#125;<br>]<br><br>response = generate_response(messages)<br><span class="hljs-built_in">print</span>(response)<br></code></pre></td></tr></table></figure>
+<p>这个技巧对智能体至关重要：后续智能体调用工具（比如查询数据库、操作文件）时，工具返回的结果通常是JSON格式，我们可以直接把这些JSON传给模型，让模型基于结构化数据做下一步决策。</p>
+<h1>小试牛刀：构建简单客服智能体</h1>
+<p>整合前面的知识点，我们可以快速搭建一个“能响应用户输入、遵循固定规则”的简单智能体——这是复杂智能体的最小原型：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> litellm <span class="hljs-keyword">import</span> completion<br><span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">List</span>, <span class="hljs-type">Dict</span><br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">generate_response</span>(<span class="hljs-params">messages: <span class="hljs-type">List</span>[<span class="hljs-type">Dict</span>]</span>) -&gt; <span class="hljs-built_in">str</span>:<br>    <span class="hljs-string">&quot;&quot;&quot;Call LLM to get response&quot;&quot;&quot;</span><br>    response = completion(<br>        model=<span class="hljs-string">&quot;ollama/qwen2.5:14b&quot;</span>,<br>        messages=messages,<br>        max_tokens=<span class="hljs-number">1024</span><br>    )<br>    <span class="hljs-keyword">return</span> response.choices[<span class="hljs-number">0</span>].message.content<br><br><br>what_to_help_with = <span class="hljs-built_in">input</span>(<span class="hljs-string">&quot;What do you need help with?&quot;</span>)<br><br>messages = [<br>    &#123;<span class="hljs-string">&quot;role&quot;</span>: <span class="hljs-string">&quot;system&quot;</span>, <span class="hljs-string">&quot;content&quot;</span>: <span class="hljs-string">&quot;You are a helpful customer service representative. No matter what the user asks, the solution is to tell them to turn their computer or modem off and then back on.&quot;</span>&#125;,<br>    &#123;<span class="hljs-string">&quot;role&quot;</span>: <span class="hljs-string">&quot;user&quot;</span>, <span class="hljs-string">&quot;content&quot;</span>: what_to_help_with&#125;<br>]<br><br>response = generate_response(messages)<br><span class="hljs-built_in">print</span>(response)<br></code></pre></td></tr></table></figure>
+<h1>进阶思考题：用系统消息强制模型输出Base64编码</h1>
+<p>系统消息的规则设计看似简单，但想要让模型<strong>严格遵守</strong>却并不容易。我们可以通过一个实操思考题，检验对系统消息的掌控能力。</p>
+<h2 id="考题内容">考题内容</h2>
+<p>尝试编写一个Prompt，让大模型<strong>仅输出Base64编码字符串</strong>，拒绝任何自然语言回答。具体要求为：模型先正常处理用户请求生成响应，再将完整响应转为Base64编码，最终输出仅保留编码字符串，无任何前缀、后缀或解释。</p>
+<h2 id="尝试的Prompt方案">尝试的Prompt方案</h2>
+<p>基于ChatML格式，设计的系统Prompt和消息构造逻辑如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">build_base64_messages</span>(<span class="hljs-params">original_prompt: <span class="hljs-built_in">str</span></span>):<br>    system_prompt = <span class="hljs-string">&quot;&quot;&quot;You are a strict Base64 encoder. Your ONLY output must be a Base64 encoded string with NO additional text.</span><br><span class="hljs-string"></span><br><span class="hljs-string">RULES:</span><br><span class="hljs-string">1. Process the user&#x27;s request normally to generate a response</span><br><span class="hljs-string">2. Convert your ENTIRE response to Base64 encoding</span><br><span class="hljs-string">3. Output ONLY the Base64 string with no explanations, prefixes, or suffixes</span><br><span class="hljs-string">4. Do not include &quot;Base64:&quot; or any other text before or after the encoded string</span><br><span class="hljs-string">5. If the request is invalid or cannot be processed, encode the word &quot;invalid&quot; to Base64 and output that</span><br><span class="hljs-string"></span><br><span class="hljs-string">Example format for a response to &quot;Hello&quot;:</span><br><span class="hljs-string">Your thought process: The user said &quot;Hello&quot;, I should respond with a greeting like &quot;Hi there!&quot;</span><br><span class="hljs-string">Base64 encoding of &quot;Hi there!&quot;: SGkgdGhlcmUh</span><br><span class="hljs-string">Your output: SGkgdGhlcmUh</span><br><span class="hljs-string"></span><br><span class="hljs-string">Now, encode your response to the following request:&quot;&quot;&quot;</span><br>    <br>    <span class="hljs-keyword">return</span> [<br>        &#123;<span class="hljs-string">&quot;role&quot;</span>: <span class="hljs-string">&quot;system&quot;</span>, <span class="hljs-string">&quot;content&quot;</span>: system_prompt&#125;,<br>        &#123;<span class="hljs-string">&quot;role&quot;</span>: <span class="hljs-string">&quot;user&quot;</span>, <span class="hljs-string">&quot;content&quot;</span>: original_prompt&#125;<br>    ]<br></code></pre></td></tr></table></figure>
+<h2 id="测试结果">测试结果</h2>
+<p>实际测试发现，<strong>输出效果很差</strong>：模型返回的Base64字符串手动解码后，无法得到通顺有效的自然语言句子；而同一个问题直接让大模型输出自然语言时，回答质量却很高。</p>
+<h2 id="简略分析">简略分析</h2>
+<p>问题的核心在于大模型对<strong>分步规则的执行偏差</strong>：</p>
+<ul>
+<li>系统Prompt要求“先生成有效响应，再完整编码”，但模型可能在生成响应阶段就出现截断、语义变形，或在编码阶段遗漏部分字符；</li>
+<li>可能模型是使用自然语言训练的，对Base64编码不够熟悉。</li>
+</ul>
+<p>‍</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/" class="category-chain-item">人工智能</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/AI-Agent/" class="category-chain-item">AI Agent</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/" class="print-no-link">#人工智能</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>AI Agent学习笔记 —— 搭建AI智能体的两大基石：可编程调用与记忆管理（1）—— 可编程调用</div>
+      <div>https://undefinedreference-code.github.io/2025/12/27/搭建AI智能体的两大基石：可编程调用与记忆管理（1）——-可编程调用/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>John Doe</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年12月27日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/12/29/AI-Agent%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E2%80%94%E2%80%94-%E6%90%AD%E5%BB%BAAI%E6%99%BA%E8%83%BD%E4%BD%93%E7%9A%84%E4%B8%A4%E5%A4%A7%E5%9F%BA%E7%9F%B3%EF%BC%9A%E5%8F%AF%E7%BC%96%E7%A8%8B%E8%B0%83%E7%94%A8%E4%B8%8E%E8%AE%B0%E5%BF%86%E7%AE%A1%E7%90%86%EF%BC%882%EF%BC%89%E2%80%94%E2%80%94-%E8%AE%B0%E5%BF%86%E7%AE%A1%E7%90%86/" title="AI Agent学习笔记 —— 搭建AI智能体的两大基石：可编程调用与记忆管理（2）—— 记忆管理">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">AI Agent学习笔记 —— 搭建AI智能体的两大基石：可编程调用与记忆管理（2）—— 记忆管理</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/12/27/AI-Agent%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E2%80%94%E2%80%94-Agent-%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/" title="AI Agent学习笔记 —— Agent 基本概念">
+                        <span class="hidden-mobile">AI Agent学习笔记 —— Agent 基本概念</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"Fo0QIqpU699rbG2Rl9lW3Vau-MdYXbMMI","appKey":"Fo0QIqpU699rbG2Rl9lW3Vau-MdYXbMMI","path":"window.location.pathname","placeholder":null,"avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

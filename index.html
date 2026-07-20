@@ -21,7 +21,7 @@
   
     <meta property="og:type" content="website">
 <meta property="og:title" content="Hexo">
-<meta property="og:url" content="http://example.com/index.html">
+<meta property="og:url" content="https://undefinedreference-code.github.io/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:author" content="John Doe">
@@ -61,7 +61,7 @@
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
     Fluid.ctx = Object.assign({}, Fluid.ctx)
-    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":"Fo0QIqpU699rbG2Rl9lW3Vau-MdYXbMMI","app_key":"z8m7WlbfobcDyEJnhla5kN5Z","server_url":"https://fo0qiqpu.api.lncldglobal.com","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+    var CONFIG = {"hostname":"undefinedreference-code.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":"Fo0QIqpU699rbG2Rl9lW3Vau-MdYXbMMI","app_key":"z8m7WlbfobcDyEJnhla5kN5Z","server_url":"https://fo0qiqpu.api.lncldglobal.com","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
 
     if (CONFIG.web_analytics.follow_dnt) {
       var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
@@ -233,6 +233,284 @@
               <div class="col-12 col-md-10 m-auto">
                 
 
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/07/20/EBO%E4%B8%8EMSVC-STL%E7%9A%84-Compressed-pair/" target="_self">
+          从 EBO 到 MSVC STL 的 _Compressed_pair
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/07/20/EBO%E4%B8%8EMSVC-STL%E7%9A%84-Compressed-pair/" target="_self">
+        <div>
+          从空类的对象布局出发，理解 EBO、unique_ptr 删除器压缩、MSVC STL 的 _Compressed_pair，以及 C++20 的 no_unique_address。
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-07-20 22:30" pubdate>
+              2026-07-20
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/C/" class="category-chain-item">C++</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/C/STL%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/" class="category-chain-item">STL源码阅读</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/C/">#C++</a>
+            
+              <a href="/tags/STL/">#STL</a>
+            
+              <a href="/tags/EBO/">#EBO</a>
+            
+              <a href="/tags/%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80/">#内存布局</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2025/12/29/AI-Agent%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E2%80%94%E2%80%94-%E6%90%AD%E5%BB%BAAI%E6%99%BA%E8%83%BD%E4%BD%93%E7%9A%84%E4%B8%A4%E5%A4%A7%E5%9F%BA%E7%9F%B3%EF%BC%9A%E5%8F%AF%E7%BC%96%E7%A8%8B%E8%B0%83%E7%94%A8%E4%B8%8E%E8%AE%B0%E5%BF%86%E7%AE%A1%E7%90%86%EF%BC%882%EF%BC%89%E2%80%94%E2%80%94-%E8%AE%B0%E5%BF%86%E7%AE%A1%E7%90%86/" target="_self">
+          AI Agent学习笔记 —— 搭建AI智能体的两大基石：可编程调用与记忆管理（2）—— 记忆管理
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2025/12/29/AI-Agent%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E2%80%94%E2%80%94-%E6%90%AD%E5%BB%BAAI%E6%99%BA%E8%83%BD%E4%BD%93%E7%9A%84%E4%B8%A4%E5%A4%A7%E5%9F%BA%E7%9F%B3%EF%BC%9A%E5%8F%AF%E7%BC%96%E7%A8%8B%E8%B0%83%E7%94%A8%E4%B8%8E%E8%AE%B0%E5%BF%86%E7%AE%A1%E7%90%86%EF%BC%882%EF%BC%89%E2%80%94%E2%80%94-%E8%AE%B0%E5%BF%86%E7%AE%A1%E7%90%86/" target="_self">
+        <div>
+          前面我们提到了大模型的可编程调用，现在我们来看大模型的记忆管理 在智能体的构建中，记忆管理是实现多轮交互连贯性的核心，而理解大模型的无状态本质是做好记忆管理的前提——这也是「Giving Agents Memory」的核心逻辑。 大模型无固有记忆 当与大模型交互时，模型并不会“记住”之前的对话或响应。每次调用模型时，它仅基于messages​参数中提供的信息生成回复；如果历史上下文未包含在mess
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2025-12-29 23:14" pubdate>
+              2025-12-29
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/" class="category-chain-item">人工智能</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/AI-Agent/" class="category-chain-item">AI Agent</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/">#人工智能</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2025/12/27/%E6%90%AD%E5%BB%BAAI%E6%99%BA%E8%83%BD%E4%BD%93%E7%9A%84%E4%B8%A4%E5%A4%A7%E5%9F%BA%E7%9F%B3%EF%BC%9A%E5%8F%AF%E7%BC%96%E7%A8%8B%E8%B0%83%E7%94%A8%E4%B8%8E%E8%AE%B0%E5%BF%86%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89%E2%80%94%E2%80%94-%E5%8F%AF%E7%BC%96%E7%A8%8B%E8%B0%83%E7%94%A8/" target="_self">
+          AI Agent学习笔记 —— 搭建AI智能体的两大基石：可编程调用与记忆管理（1）—— 可编程调用
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2025/12/27/%E6%90%AD%E5%BB%BAAI%E6%99%BA%E8%83%BD%E4%BD%93%E7%9A%84%E4%B8%A4%E5%A4%A7%E5%9F%BA%E7%9F%B3%EF%BC%9A%E5%8F%AF%E7%BC%96%E7%A8%8B%E8%B0%83%E7%94%A8%E4%B8%8E%E8%AE%B0%E5%BF%86%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89%E2%80%94%E2%80%94-%E5%8F%AF%E7%BC%96%E7%A8%8B%E8%B0%83%E7%94%A8/" target="_self">
+        <div>
+          搭建AI智能体的第一步，是突破“手动输入提示词”的局限——让程序自动与大模型交互，并能记住迭代过程中的关键信息。这就需要掌握两个核心能力：  可编程调用提示词：把人类手动和大模型对话的过程自动化，这是智能体循环（Agent Loop）能持续运行的基础； 记忆管理：精准控制“哪些信息需要保留”（比如API调用结果、对话历史），让智能体能基于上下文做决策，而不是每次都“从零开始”。  实操入门：用Li
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2025-12-27 22:32" pubdate>
+              2025-12-27
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/" class="category-chain-item">人工智能</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/AI-Agent/" class="category-chain-item">AI Agent</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/">#人工智能</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2025/12/27/AI-Agent%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E2%80%94%E2%80%94-Agent-%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/" target="_self">
+          AI Agent学习笔记 —— Agent 基本概念
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2025/12/27/AI-Agent%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E2%80%94%E2%80%94-Agent-%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/" target="_self">
+        <div>
+          AI Agent学习笔记 —— Agent 基本概念 翻转互动模式：当AI从回答者变身为提问者，一切才刚刚开始 在人与AI的传统互动中，我们早已习惯了一个固定模式：​​人类提问，AI回答。无论是“明天的天气如何？”还是“请写一首关于春天的诗”，我们都是那个发出指令、开启对话的主导者。AI则扮演着一位知识渊博、有问必答的“助手”，在收到清晰的指令后，尽其所能地给出最佳回应。 然而，一个强大而巧妙的应
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2025-12-27 22:25" pubdate>
+              2025-12-27
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/" class="category-chain-item">人工智能</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/AI-Agent/" class="category-chain-item">AI Agent</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/">#人工智能</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
 
   <div class="row mx-auto index-card">
     
@@ -642,257 +920,6 @@
             <i class="iconfont icon-tags"></i>
             
               <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">#图形学</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2025/04/11/C-%E6%A8%A1%E6%9D%BF%E7%B3%BB%E5%88%97-%E2%80%94%E2%80%94-%E6%A8%A1%E6%9D%BF%E4%B8%AD%E7%9A%84%E5%90%8D%E7%A7%B0%E7%BB%91%E5%AE%9A%EF%BC%88Name-Binding%EF%BC%89/" target="_self">
-          C++模板系列 —— 模板中的名称绑定（Name Binding）
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2025/04/11/C-%E6%A8%A1%E6%9D%BF%E7%B3%BB%E5%88%97-%E2%80%94%E2%80%94-%E6%A8%A1%E6%9D%BF%E4%B8%AD%E7%9A%84%E5%90%8D%E7%A7%B0%E7%BB%91%E5%AE%9A%EF%BC%88Name-Binding%EF%BC%89/" target="_self">
-        <div>
-          C++的变量和函数使用之前都需要进行声明，如果编译器在编译的过程中发现当你使用了一个变量而没有找到对应声明/定义的时候就会报错，而模板的出现让这个过程变得更复杂了。例如下面的代码： 12345678template &lt;typename T&gt;struct parser           &#123;   void parse(T arg)   &#123;      arg.handl
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2025-04-11 00:10" pubdate>
-              2025-04-11
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/c/" class="category-chain-item">c++</a>
-  
-  
-    <span>></span>
-    
-  <a href="/categories/c/%E6%A8%A1%E6%9D%BF/" class="category-chain-item">模板</a>
-  
-  
-
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/c-%E6%A8%A1%E6%9D%BF/">#c++模板</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2025/03/26/%E5%A6%82%E4%BD%95%E8%AE%A1%E7%AE%97%E4%B8%80%E4%B8%AA%E4%B8%89%E7%BB%B4%E7%A9%BA%E9%97%B4%E4%B8%AD%E7%9A%84%E5%9C%86%E5%BD%A2%E7%9A%84AABB/" target="_self">
-          如何计算一个三维空间中的圆形的AABB
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2025/03/26/%E5%A6%82%E4%BD%95%E8%AE%A1%E7%AE%97%E4%B8%80%E4%B8%AA%E4%B8%89%E7%BB%B4%E7%A9%BA%E9%97%B4%E4%B8%AD%E7%9A%84%E5%9C%86%E5%BD%A2%E7%9A%84AABB/" target="_self">
-        <div>
-          假设三维空间中的一个圆形的圆心是 ccc, 半径是 rrr，法向量是 n⃗\vec{n}n. 如何计算AABB的六个点。 首先计算x方向上AABB的顶点，如下图所示： ​ 我们找一个角度，让圆形看起来是一条直线，我们的目的地就是求出 ca⃗\vec{ca}ca 的方向，并进行归一化得到 uxu_xux​，然后 a=c+r⋅ux,b=c−r⋅uxa=c+r\cdot\mathbf{u}_x,\qua
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2025-03-26 23:30" pubdate>
-              2025-03-26
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E8%AE%A1%E7%AE%97%E5%87%A0%E4%BD%95/" class="category-chain-item">计算几何</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2025/03/23/C-%E6%A8%A1%E6%9D%BF%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94-std-declval/" target="_self">
-          C++模板系列 —— std::declval
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2025/03/23/C-%E6%A8%A1%E6%9D%BF%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94-std-declval/" target="_self">
-        <div>
-          C++模板系列—— std::declval 为什么需要declval 让我们考虑一个类模板，它的模板参数是两种不同类型T和U，我们需要定义一个类型的别名result_type, result_type的类型是T和U进行加法后得到的类型名。这样的类型别名应如何定义？让我们从以下形式开始 12345template &lt;typename T, typename U&gt;struct compo
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2025-03-23 23:40" pubdate>
-              2025-03-23
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/c/" class="category-chain-item">c++</a>
-  
-  
-    <span>></span>
-    
-  <a href="/categories/c/%E6%A8%A1%E6%9D%BF/" class="category-chain-item">模板</a>
-  
-  
-
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/c-%E6%A8%A1%E6%9D%BF/">#c++模板</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2025/03/19/OpenGL-3-3-core%E4%B8%8EOpenGLES-3-0%E7%9A%84VAO%E4%B8%8EVBO%E4%BD%BF%E7%94%A8%E5%B7%AE%E8%B7%9D/" target="_self">
-          OpenGL 3.3 core与OpenGLES 3.0的VAO与VBO使用差距
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2025/03/19/OpenGL-3-3-core%E4%B8%8EOpenGLES-3-0%E7%9A%84VAO%E4%B8%8EVBO%E4%BD%BF%E7%94%A8%E5%B7%AE%E8%B7%9D/" target="_self">
-        <div>
-          背景 学完《Learn OpenGL》之后，又开始看安卓端的OpenGLES，发现有如下代码： 12345678910// 这是用于GLES  GLfloat vVertices[] = &#123;      0.0f,  0.5f, 0.0f,      -0.5f, -0.5f, 0.0f,      0.5f, -0.5f, 0.0f,  &#125;;  // Load the vert
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2025-03-19 23:09" pubdate>
-              2025-03-19
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" class="category-chain-item">图形学</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6API/">#图形学API</a>
             
           </div>
         
